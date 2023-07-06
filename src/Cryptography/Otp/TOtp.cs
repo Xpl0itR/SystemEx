@@ -6,9 +6,8 @@
 
 using System;
 using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using SystemEx.HighPerformance;
 
 namespace SystemEx.Cryptography.Otp;
 
@@ -51,10 +50,7 @@ public sealed class TOtp : HOtp
             unixSeconds = BinaryPrimitives.ReverseEndianness(unixSeconds);
         }
 
-        ReadOnlySpan<byte> counter = MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.As<long, byte>(ref unixSeconds),
-            sizeof(long));
-
-        return base.ComputeCode(counter);
+        return base.ComputeCode(
+            unixSeconds.AsReadOnlyBytes());
     }
 }

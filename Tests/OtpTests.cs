@@ -7,9 +7,7 @@ using static System.Text.Encoding;
 
 namespace SystemEx.Tests;
 
-/// <summary>
-///     Test vectors from <see href="https://datatracker.ietf.org/doc/html/rfc6238#appendix-B" />
-/// </summary>
+/// <remarks>Test vectors from <see href="https://datatracker.ietf.org/doc/html/rfc6238#appendix-B" /></remarks>
 public class OtpTests
 {
     private const int    NumDigits        = 8;

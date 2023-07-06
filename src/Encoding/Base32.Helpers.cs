@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using SystemEx.HighPerformance;
 
 namespace SystemEx.Encoding;
 
@@ -43,37 +44,17 @@ partial class Base32
         return destination;
     }
 
-    public static unsafe string GetString(ReadOnlySpan<byte> source)
+    public static string GetString(ReadOnlySpan<byte> source)
     {
         if (source.Length == 0)
         {
             return string.Empty;
         }
 
-        fixed (byte* sourcePtr = source)
-        {
-            return string.Create(
-                CountChars(source.Length),
-                (Ptr: (IntPtr)sourcePtr, source.Length),
-                (destination, state) =>
-                {
-                    ReadOnlySpan<byte> src = new((byte*)state.Ptr, state.Length);
-                    GetChars(src, destination);
-                });
-        }
-    }
+        string destination = new('\0', CountChars(source.Length));
+        GetChars(source, destination.AsWriteableSpan());
 
-    public static string GetString(byte[] source)
-    {
-        if (source.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        return string.Create(
-            CountChars(source.Length),
-            source,
-            (destination, src) => GetChars(src, destination));
+        return destination;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

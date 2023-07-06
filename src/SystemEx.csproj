@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Xpl0itR</Authors>
     <BaseOutputPath>$(SolutionDir)bin/$(MSBuildProjectName)</BaseOutputPath>
     <Copyright>Copyright © 2022-2023 Xpl0itR</Copyright>

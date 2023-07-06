@@ -21,7 +21,7 @@ public class Base32Tests
     } // ReSharper restore StringLiteralTypo
 
     [Theory, MemberData(nameof(TestVectors))]
-    public void TestToString(string asciiString, string expectedBase32)
+    public void GetStringFromBytes(string asciiString, string expectedBase32)
     {
         byte[] bytes        = ASCII.GetBytes(asciiString);
         string actualBase32 = Base32.GetString(bytes);
@@ -30,7 +30,7 @@ public class Base32Tests
     }
 
     [Theory, MemberData(nameof(TestVectors))]
-    public void TestToStringUnsafe(string asciiString, string expectedBase32)
+    public void GetStringFromSpan(string asciiString, string expectedBase32)
     {
         ReadOnlySpan<byte> bytes = ASCII.GetBytes(asciiString);
         string actualBase32 = Base32.GetString(bytes);
@@ -39,7 +39,7 @@ public class Base32Tests
     }
 
     [Theory, MemberData(nameof(TestVectors))]
-    public void TestToChars(string asciiString, string expectedBase32)
+    public void GetChars(string asciiString, string expectedBase32)
     {
         byte[] bytes        = ASCII.GetBytes(asciiString);
         char[] actualBase32 = Base32.GetChars(bytes);
@@ -48,7 +48,7 @@ public class Base32Tests
     }
 
     [Theory, MemberData(nameof(TestVectors))]
-    public void TestToBytes(string expectedAscii, string base32String)
+    public void GetBytes(string expectedAscii, string base32String)
     {
         byte[] bytes       = Base32.GetBytes(base32String);
         string actualAscii = ASCII.GetString(bytes);
@@ -57,6 +57,6 @@ public class Base32Tests
     }
 
     [Fact]
-    public void TestInvalid() =>
+    public void Invalid() =>
         Assert.Throws<ArgumentOutOfRangeException>(() => Base32.GetBytes("1"));
 }
