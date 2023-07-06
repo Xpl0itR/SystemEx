@@ -5,7 +5,9 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace SystemEx.Cryptography.Otp;
@@ -14,6 +16,9 @@ namespace SystemEx.Cryptography.Otp;
 /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc6238" /></remarks>
 public sealed class TOtp : HOtp
 {
+    public int TimeStep = 30;
+
+#region Constructor overloads
     public TOtp(ReadOnlySpan<byte> key)
         : base(key)
     { }
@@ -29,8 +34,7 @@ public sealed class TOtp : HOtp
     public TOtp(ReadOnlySpan<char> keyBase32, HashAlgorithmName hashAlg)
         : base(keyBase32, hashAlg)
     { }
-
-    public int TimeStep { get; set; } = 30;
+#endregion
 
     public int Now() =>
         ComputeCode(DateTimeOffset.UtcNow);
@@ -38,13 +42,18 @@ public sealed class TOtp : HOtp
     public int ComputeCode(DateTimeOffset timestamp) =>
         ComputeCode(timestamp.ToUnixTimeSeconds());
 
-    public int ComputeCode(long unixTimestamp)
+    public int ComputeCode(long unixSeconds)
     {
-        Span<byte> counter = stackalloc byte[sizeof(long)];
-        Unsafe.As<byte, long>(ref counter[0]) = unixTimestamp / TimeStep;
+        unixSeconds /= TimeStep;
 
         if (BitConverter.IsLittleEndian)
-            counter.Reverse();
+        {
+            unixSeconds = BinaryPrimitives.ReverseEndianness(unixSeconds);
+        }
+
+        ReadOnlySpan<byte> counter = MemoryMarshal.CreateReadOnlySpan(
+            ref Unsafe.As<long, byte>(ref unixSeconds),
+            sizeof(long));
 
         return base.ComputeCode(counter);
     }

@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System;
+using System.Runtime.CompilerServices;
+using CommunityToolkit.Diagnostics;
 
-namespace SystemEx.Encoding.Base32;
+namespace SystemEx.Encoding;
 
 /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4648#section-6" /></remarks>
 public static partial class Base32
 {
-    public static void ToBytes(ReadOnlySpan<char> source, Span<byte> destination)
+    public static void GetBytes(ReadOnlySpan<char> source, Span<byte> destination)
     {
         int current   = 0,
             count     = 0,
@@ -34,7 +34,7 @@ public static partial class Base32
         }
     }
 
-    public static void ToChars(ReadOnlySpan<byte> source, Span<char> destination)
+    public static void GetChars(ReadOnlySpan<byte> source, Span<char> destination)
     {
         int current   = source[0],
             next      = 1,
@@ -70,6 +70,12 @@ public static partial class Base32
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static char IntToChar(int i) =>
+        (char)(i < 26
+                ? i + 'A'
+                : i + 24);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CharToInt(char chr)
     {
         if ((uint)(chr - 'A') <= 'Z' - 'A')
@@ -82,19 +88,9 @@ public static partial class Base32
             return chr - 24;
         }
 
-        return ThrowInvalidCharacter(nameof(chr), chr);
+#pragma warning disable HAA0601 // JUSTIFICATION: Boxing of char only occurs on exception
+        return ThrowHelper.ThrowArgumentOutOfRangeException<int>(
+            nameof(chr), chr, "Source contains character which does not exist in Base32.");
+#pragma warning restore HAA0601
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static char IntToChar(int i) =>
-        (char)(i < 26
-                ? i + 'A'
-                : i + 24);
-
-    [MethodImpl(MethodImplOptions.NoInlining), DoesNotReturn]
-    private static int ThrowInvalidCharacter(string paramName, char actualValue) =>
-        throw new ArgumentOutOfRangeException(
-            paramName,
-            actualValue,
-            "Source contains character which does not exist in Base32.");
 }

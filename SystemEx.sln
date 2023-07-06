@@ -6,19 +6,13 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5A43DD95-F982-4BE0-AEB5-7DA6CCAE0C51}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
-		Common.props = Common.props
 		LICENSE = LICENSE
 		README.md = README.md
-		SystemEx.sln.DotSettings = SystemEx.sln.DotSettings
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx.Encoding.Base32", "Encoding.Base32\SystemEx.Encoding.Base32.csproj", "{A63EB037-A365-416C-8D53-971A52F29A52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx", "src\SystemEx.csproj", "{A63EB037-A365-416C-8D53-971A52F29A52}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx.Cryptography.Otp", "Cryptography.Otp\SystemEx.Cryptography.Otp.csproj", "{DC2C0D1D-9EC0-4EB8-AF29-82D5BFCAFBB5}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx.Tests", "Tests\SystemEx.Tests.csproj", "{B0E5966C-2CC0-4B2D-907B-C238375A48CA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx.Benchmarks", "Benchmarks\SystemEx.Benchmarks.csproj", "{F596832F-2923-46F9-95FF-19224F1E51CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemEx.Tests", "tests\SystemEx.Tests.csproj", "{B0E5966C-2CC0-4B2D-907B-C238375A48CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,18 +24,10 @@ Global
 		{A63EB037-A365-416C-8D53-971A52F29A52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A63EB037-A365-416C-8D53-971A52F29A52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A63EB037-A365-416C-8D53-971A52F29A52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC2C0D1D-9EC0-4EB8-AF29-82D5BFCAFBB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC2C0D1D-9EC0-4EB8-AF29-82D5BFCAFBB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC2C0D1D-9EC0-4EB8-AF29-82D5BFCAFBB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC2C0D1D-9EC0-4EB8-AF29-82D5BFCAFBB5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B0E5966C-2CC0-4B2D-907B-C238375A48CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B0E5966C-2CC0-4B2D-907B-C238375A48CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B0E5966C-2CC0-4B2D-907B-C238375A48CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B0E5966C-2CC0-4B2D-907B-C238375A48CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F596832F-2923-46F9-95FF-19224F1E51CF}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{F596832F-2923-46F9-95FF-19224F1E51CF}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{F596832F-2923-46F9-95FF-19224F1E51CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F596832F-2923-46F9-95FF-19224F1E51CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

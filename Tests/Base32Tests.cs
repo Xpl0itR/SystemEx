@@ -1,12 +1,6 @@
-﻿// Copyright © 2022 Xpl0itR
-// 
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using SystemEx.Encoding.Base32;
+using SystemEx.Encoding;
 using Xunit;
 using static System.Text.Encoding;
 
@@ -30,7 +24,16 @@ public class Base32Tests
     public void TestToString(string asciiString, string expectedBase32)
     {
         byte[] bytes        = ASCII.GetBytes(asciiString);
-        string actualBase32 = Base32.ToString(bytes);
+        string actualBase32 = Base32.GetString(bytes);
+
+        Assert.Equal(expectedBase32, actualBase32);
+    }
+
+    [Theory, MemberData(nameof(TestVectors))]
+    public void TestToStringUnsafe(string asciiString, string expectedBase32)
+    {
+        ReadOnlySpan<byte> bytes = ASCII.GetBytes(asciiString);
+        string actualBase32 = Base32.GetString(bytes);
 
         Assert.Equal(expectedBase32, actualBase32);
     }
@@ -39,7 +42,7 @@ public class Base32Tests
     public void TestToChars(string asciiString, string expectedBase32)
     {
         byte[] bytes        = ASCII.GetBytes(asciiString);
-        char[] actualBase32 = Base32.ToChars(bytes);
+        char[] actualBase32 = Base32.GetChars(bytes);
 
         Assert.Equal(expectedBase32, actualBase32);
     }
@@ -47,7 +50,7 @@ public class Base32Tests
     [Theory, MemberData(nameof(TestVectors))]
     public void TestToBytes(string expectedAscii, string base32String)
     {
-        byte[] bytes       = Base32.ToBytes(base32String);
+        byte[] bytes       = Base32.GetBytes(base32String);
         string actualAscii = ASCII.GetString(bytes);
 
         Assert.Equal(expectedAscii, actualAscii);
@@ -55,5 +58,5 @@ public class Base32Tests
 
     [Fact]
     public void TestInvalid() =>
-        Assert.Throws<ArgumentOutOfRangeException>(() => Base32.ToBytes("1"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Base32.GetBytes("1"));
 }

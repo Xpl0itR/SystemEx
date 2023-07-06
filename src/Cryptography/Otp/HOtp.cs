@@ -6,7 +6,7 @@
 
 using System;
 using System.Security.Cryptography;
-using SystemEx.Encoding.Base32;
+using SystemEx.Encoding;
 
 namespace SystemEx.Cryptography.Otp;
 
@@ -14,38 +14,43 @@ namespace SystemEx.Cryptography.Otp;
 public class HOtp : IDisposable
 {
     private readonly IncrementalHash _hmac;
-    private int _mod = 1000000;
+    private readonly int _mod = 1000000;
 
+#region Constructor overloads
     public HOtp(ReadOnlySpan<byte> key)
         : this(key, HashAlgorithmName.SHA1)
     { }
 
-    public HOtp(ReadOnlySpan<byte> key, HashAlgorithmName hashAlg) =>
-        _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
-
     public HOtp(ReadOnlySpan<char> keyBase32)
         : this(keyBase32, HashAlgorithmName.SHA1)
     { }
+#endregion
+
+    public HOtp(ReadOnlySpan<byte> key, HashAlgorithmName hashAlg) =>
+        _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
 
     public HOtp(ReadOnlySpan<char> keyBase32, HashAlgorithmName hashAlg)
     {
-        Span<byte> key = stackalloc byte[Base32.NumBytes(keyBase32)];
-        Base32.ToBytes(keyBase32, key);
+        Span<byte> key = stackalloc byte[Base32.CountBytes(keyBase32.Length)];
+        Base32.GetBytes(keyBase32, key);
 
         _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
     }
 
     public uint NumDigits
     {
-        set => _mod = (int)Math.Pow(10, value);
+        init => _mod = (int)Math.Pow(10, value);
     }
 
     public int ComputeCode(ReadOnlySpan<byte> counter)
     {
-        _hmac.AppendData(counter);
-
         Span<byte> hash = stackalloc byte[_hmac.HashLengthInBytes];
-        _hmac.GetHashAndReset(hash);
+
+        lock (_hmac)
+        {
+            _hmac.AppendData(counter);
+            _hmac.GetHashAndReset(hash);
+        }
 
         int offset = hash[^1] & 0x0F;
         int code   = (hash[offset]     & 0x7F) << 24
