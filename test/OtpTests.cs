@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using SystemEx.Cryptography.Otp;
 using Xunit;
-using static System.Text.Encoding;
 
 namespace SystemEx.Tests;
 
@@ -13,9 +12,9 @@ public class OtpTests
     private const int    NumDigits        = 8;
     private const string SecretSha1Base32 = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ";
 
-    private static readonly byte[] SecretSha1   = ASCII.GetBytes("12345678901234567890");
-    private static readonly byte[] SecretSha256 = ASCII.GetBytes("12345678901234567890123456789012");
-    private static readonly byte[] SecretSha512 = ASCII.GetBytes("1234567890123456789012345678901234567890123456789012345678901234");
+    private static readonly byte[] SecretSha1   = "12345678901234567890"u8.ToArray();
+    private static readonly byte[] SecretSha256 = "12345678901234567890123456789012"u8.ToArray();
+    private static readonly byte[] SecretSha512 = "1234567890123456789012345678901234567890123456789012345678901234"u8.ToArray();
 
     public static IEnumerable<object[]> TestVectors()
     { //                          | Time (sec) | HMAC Secret |          Mode           |   TOTP   |

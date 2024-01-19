@@ -61,18 +61,7 @@ public class HOtp : IDisposable
         return code % _mod;
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (disposing)
-        {
-            _hmac.Dispose();
-        }
-    }
-
     /// <inheritdoc />
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+    public void Dispose() =>
+        _hmac.Dispose();
 }

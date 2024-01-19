@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2023-2024 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,16 +6,20 @@
 
 using System;
 using System.Security.Cryptography;
-using SystemEx.HighPerformance;
+using SystemEx.Memory;
+using CommunityToolkit.Diagnostics;
 
 namespace SystemEx.Cryptography.Block;
 
 public static partial class AesExtensions
 {
+    private const int BlockLength = 16;
+    private static readonly byte[] Zero16 = new byte[BlockLength];
+
     /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4493" /></remarks>
     public static byte[] ComputeCmac(this Aes aes, ReadOnlySpan<byte> source)
     {
-        byte[] destination = GC.AllocateUninitializedArray<byte>(16);
+        byte[] destination = GC.AllocateUninitializedArray<byte>(BlockLength);
         ComputeCmac(aes, source, destination);
 
         return destination;
@@ -24,16 +28,22 @@ public static partial class AesExtensions
     /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4493" /></remarks>
     public static void ComputeCmac(this Aes aes, ReadOnlySpan<byte> source, Span<byte> destination)
     {
+        Guard.HasSizeGreaterThanOrEqualTo(destination, BlockLength);
+
         ReadOnlySpan<byte> zero = new(Zero16);
-        Span<byte>         key  = stackalloc byte[16];
+        Span<byte>         key  = stackalloc byte[BlockLength];
 
         aes.EncryptCbc(zero, zero, key, PaddingMode.None);
         ShiftKey(key);
 
         bool fullBlock = source.Length > 0 && source.Length % 16 == 0;
-        int  bufferLen = fullBlock ? source.Length : source.Length + (16 - source.Length % 16);
+        int  bufferLen = fullBlock
+            ? source.Length
+            : source.Length + (BlockLength - source.Length % BlockLength);
 
-        Span<byte> buffer = stackalloc byte[bufferLen];
+        using RentedMemory<byte> rented = new(bufferLen);
+        Span<byte> buffer = rented.AsSpan();
+
         CopyHelper.CopySpanUnchecked(source, buffer);
 
         if (!fullBlock)
@@ -42,19 +52,17 @@ public static partial class AesExtensions
             buffer[source.Length] = 0x80;
         }
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < BlockLength; i++)
         {
-            buffer[buffer.Length - 16 + i] ^= key[i];
+            buffer[buffer.Length - BlockLength + i] ^= key[i];
         }
         
         aes.EncryptCbc(buffer, zero, buffer, PaddingMode.None);
 
         CopyHelper.CopySpanUnchecked(
-            buffer.SliceReadOnly(buffer.Length - 16, 16),
+            buffer.SliceReadOnly(bufferLen - BlockLength, BlockLength),
             destination);
     }
-
-    private static readonly byte[] Zero16 = new byte[16];
 
     private static void ShiftKey(Span<byte> key)
     {

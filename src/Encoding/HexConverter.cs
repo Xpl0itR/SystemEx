@@ -3,7 +3,7 @@
 // source: https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/System/HexConverter.cs
 
 // ReSharper disable All
-#pragma warning disable CS1591
+#pragma warning disable CS1591, MA0026, MA0051
 
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -11,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.Arm;
 using System.Runtime.Intrinsics.X86;
-using SystemEx.HighPerformance;
+using SystemEx.Memory;
 using CommunityToolkit.Diagnostics;
 
 namespace System

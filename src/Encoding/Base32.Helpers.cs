@@ -6,7 +6,7 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using SystemEx.HighPerformance;
+using SystemEx.Memory;
 
 namespace SystemEx.Encoding;
 

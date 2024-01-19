@@ -7,7 +7,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using SystemEx.HighPerformance;
+using SystemEx.Memory;
 
 namespace SystemEx.Cryptography.Block;
 
@@ -77,7 +77,7 @@ public static partial class RsaExtensions
 
     public static byte[] DecryptEcbPkcs1(this RSA rsa, ReadOnlySpan<byte> source)
     {
-        using RentedSpan<byte> buffer = new(
+        using RentedMemory<byte> buffer = new(
             MessageLengthMaxEcbPkcs1(rsa, source.Length));
 
         int count = DecryptEcbPkcs1(rsa, source, buffer);
@@ -88,11 +88,15 @@ public static partial class RsaExtensions
         return destination;
     }
 
-    [Obsolete("RSACryptoServiceProvider does not implement the Span APIs, falling back to shim methods which copy data into heap allocated temporary buffers.")]
+
+    private const string RSACryptoServiceProviderObsoleteMessage =
+        $"{nameof(RSACryptoServiceProvider)} does not implement the Span APIs, falling back to shim methods which copy data into heap allocated temporary buffers.";
+
+    [Obsolete(RSACryptoServiceProviderObsoleteMessage)]
     public static void EncryptEcbPkcs1(this RSACryptoServiceProvider rsa, ReadOnlySpan<byte> source, Span<byte> destination) =>
         EncryptEcbPkcs1((RSA)rsa, source, destination);
 
-    [Obsolete("RSACryptoServiceProvider does not implement the Span APIs, falling back to shim methods which copy data into heap allocated temporary buffers.")]
+    [Obsolete(RSACryptoServiceProviderObsoleteMessage)]
     public static void DecryptEcbPkcs1(this RSACryptoServiceProvider rsa, ReadOnlySpan<byte> source, Span<byte> destination) =>
         DecryptEcbPkcs1((RSA)rsa, source, destination);
 }

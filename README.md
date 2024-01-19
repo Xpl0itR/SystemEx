@@ -1,6 +1,6 @@
-SystemEx
+SystemEx [![NuGet](https://img.shields.io/nuget/vpre/Xpl0itR.SystemEx)](https://www.nuget.org/packages/Xpl0itR.SystemEx/)
 ========
-SystemEx is a library which extends the functionality of the .NET standard libraries, written in C# 11, targeting .NET 7.0 and later.
+SystemEx is a library which extends the functionality of the .NET standard libraries, written in C# 12, targeting .NET 8.0 and later.
 
 License
 -------

@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2023-2024 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
 
-namespace SystemEx.HighPerformance;
+namespace SystemEx.Memory;
 
 public static class CopyHelper
 {
@@ -30,17 +30,28 @@ public static class CopyHelper
         where TDest   : unmanaged
     {
         Unsafe.CopyBlock(
-            ref Unsafe.As<TDest, byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(destination), dstOffset)),
-            ref Unsafe.As<TSource, byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(source),    srcOffset)),
+            ref Unsafe.As<TDest,   byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(destination), dstOffset)),
+            ref Unsafe.As<TSource, byte>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(source),      srcOffset)),
             (uint)(srcCount * Unsafe.SizeOf<TSource>()));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void CopyBlockUnchecked(ref byte source, int srcOffset, ref byte destination, int dstOffset, int count) =>
         Unsafe.CopyBlock(
-            ref Unsafe.AddByteOffset(ref destination, (IntPtr)dstOffset),
-            ref Unsafe.AddByteOffset(ref source,      (IntPtr)srcOffset),
+            ref Unsafe.AddByteOffset(ref destination, dstOffset),
+            ref Unsafe.AddByteOffset(ref source,      srcOffset),
             (uint)count);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void CopyBlockUnchecked<TSource, TDest>(ref TSource source, int srcOffset, ref TDest destination, int dstOffset, int count)
+        where TSource : unmanaged
+        where TDest   : unmanaged
+    {
+        Unsafe.CopyBlock(
+            ref Unsafe.As<TDest, byte>(ref Unsafe.Add(ref destination, dstOffset)),
+            ref Unsafe.As<TSource, byte>(ref Unsafe.Add(ref source,    srcOffset)),
+            (uint)(count * Unsafe.SizeOf<TSource>()));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void CopySpan(ReadOnlySpan<byte> source, Span<byte> destination)
@@ -73,7 +84,7 @@ public static class CopyHelper
         where TDest   : unmanaged
     {
         Unsafe.CopyBlock(
-            ref Unsafe.As<TDest, byte>(ref MemoryMarshal.GetReference(destination)),
+            ref Unsafe.As<TDest,   byte>(ref MemoryMarshal.GetReference(destination)),
             ref Unsafe.As<TSource, byte>(ref MemoryMarshal.GetReference(source)),
             (uint)(source.Length * Unsafe.SizeOf<TSource>()));
     }

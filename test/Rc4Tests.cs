@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using SystemEx.Cryptography.Stream;
-using SystemEx.HighPerformance;
+using SystemEx.Memory;
 using Xunit;
 
 namespace SystemEx.Tests;

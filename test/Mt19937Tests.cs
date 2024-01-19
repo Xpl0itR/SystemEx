@@ -415,9 +415,25 @@ public class Mt19937Tests
     };
 
     [Fact]
-    public void Int64AndReal2()
+    public void Int64AndReal2OnHeap()
     {
-        MT19937_64 mt = new
+        MT19937_64 mt = new([0x12345, 0x23456, 0x34567, 0x45678]);
+
+        foreach (ulong expected in ExpectedInt64)
+        {
+            Assert.Equal(expected, mt.Int64());
+        }
+
+        foreach (double expected in ExpectedReal2)
+        {
+            Assert.Equal(expected, Math.Round(mt.Real2(), 8));
+        }
+    }
+
+    [Fact]
+    public void Int64AndReal2OnStack()
+    {
+        MT19937_64.OnStack mt = new
         (
             stackalloc ulong[MT19937_64.Nn],
             stackalloc ulong[4] { 0x12345, 0x23456, 0x34567, 0x45678 }

@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2023-2024 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
 
-namespace SystemEx.HighPerformance;
+namespace SystemEx.Memory;
 
 public static class MemoryMarshalEx
 {
@@ -28,12 +28,16 @@ public static class MemoryMarshalEx
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Span<char> AsWriteableSpan(this string str) =>
         MemoryMarshal.CreateSpan(
-            ref Unsafe.AsRef(str.GetPinnableReference()), // They say strings are immutable, I must disagree
-            str.Length);
+            ref Unsafe.AsRef(
+                in str.GetPinnableReference()),
+            str.Length); // They say strings are immutable, I must disagree
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ref T As<T>(ref byte ptr, int offset) where T : unmanaged =>
-        ref Unsafe.As<byte, T>(ref Unsafe.AddByteOffset(ref ptr, (IntPtr)offset));
+    public static ref TTo As<TFrom, TTo>(ref TFrom ptr, int offset)
+        where TFrom : unmanaged
+        where TTo   : unmanaged =>
+            ref Unsafe.As<TFrom, TTo>(
+                ref Unsafe.Add(ref ptr, offset));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int SizeAs<TFrom, TTo>(int fromSize)
@@ -46,8 +50,22 @@ public static class MemoryMarshalEx
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ref T GetReference<T>(Span<T> span, int offset) =>
+        ref Unsafe.Add(
+            ref MemoryMarshal.GetReference(span),
+            offset);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ref T GetArrayDataReference<T>(T[] array, int offset) =>
+        ref Unsafe.Add(
+            ref MemoryMarshal.GetArrayDataReference(array),
+            offset);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ReadOnlySpan<T> SliceReadOnly<T>(this Span<T> span, int start, int length) =>
         MemoryMarshal.CreateReadOnlySpan(
-            ref Unsafe.Add(ref MemoryMarshal.GetReference(span), start),
+            ref Unsafe.Add(
+                ref MemoryMarshal.GetReference(span),
+                start),
             length);
 }

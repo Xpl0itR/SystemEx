@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2023-2024 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,6 +13,23 @@ public static class KeyValuePairsExtensions
 {
     public static void Add<TKey, TValue>(this ICollection<KeyValuePair<TKey, TValue>> keyValuePairs, TKey key, TValue value) =>
         keyValuePairs.Add(new KeyValuePair<TKey, TValue>(key, value));
+		
+	public static bool ContainsDuplicateKey<TKey, TValue>(
+        this IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs,
+        IEqualityComparer<TKey>?                     comparer = null)
+    {
+        HashSet<TKey> set = new(5, comparer);
+
+        foreach (KeyValuePair<TKey, TValue> kvp in keyValuePairs)
+        {
+            if (!set.Add(kvp.Key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public static IOrderedEnumerable<KeyValuePair<TKey, TValue>> Sort<TKey, TValue>(
         this IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs,
