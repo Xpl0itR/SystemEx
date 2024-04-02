@@ -13,9 +13,9 @@ partial struct RentedMemory<T>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly ArraySegment<T> AsArraySegment(int offset = 0, int? length = null) =>
-        new(this.BackingArray, offset, length ?? this.Length);
+        new(this.BackingArray, offset, length ?? this.Length - offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ArraySegment<T>(RentedMemory<T> rentedArray) =>
-        rentedArray.AsArraySegment();
+    public static implicit operator ArraySegment<T>(RentedMemory<T> rented) =>
+        rented.AsArraySegment();
 }

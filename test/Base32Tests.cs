@@ -11,13 +11,13 @@ public class Base32Tests
     /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4648#section-10" /></remarks>
     public static IEnumerable<object[]> TestVectors()
     { // ReSharper disable StringLiteralTypo
-        yield return new object[] { "",       ""                 };
-        yield return new object[] { "f",      "MY======"         };
-        yield return new object[] { "fo",     "MZXQ===="         };
-        yield return new object[] { "foo",    "MZXW6==="         };
-        yield return new object[] { "foob",   "MZXW6YQ="         };
-        yield return new object[] { "fooba",  "MZXW6YTB"         };
-        yield return new object[] { "foobar", "MZXW6YTBOI======" };
+        yield return ["",       ""];
+        yield return ["f",      "MY======"];
+        yield return ["fo",     "MZXQ===="];
+        yield return ["foo",    "MZXW6==="];
+        yield return ["foob",   "MZXW6YQ="];
+        yield return ["fooba",  "MZXW6YTB"];
+        yield return ["foobar", "MZXW6YTBOI======"];
     } // ReSharper restore StringLiteralTypo
 
     [Theory, MemberData(nameof(TestVectors))]

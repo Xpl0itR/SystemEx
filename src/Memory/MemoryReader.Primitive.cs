@@ -24,10 +24,10 @@ partial struct MemoryReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public byte ReadByte()
     {
-        Guard.IsGreaterThanOrEqualTo(_length - Position, 1);
+        Guard.IsGreaterThanOrEqualTo(Remaining, 1);
 
         byte value = Source;
-        Position++;
+        _position++;
 
         return value;
     }
@@ -36,10 +36,10 @@ partial struct MemoryReader
     public T Read<T>() where T : unmanaged
     {
         int length = Unsafe.SizeOf<T>();
-        Guard.IsGreaterThanOrEqualTo(_length - Position, length);
+        Guard.IsGreaterThanOrEqualTo(Remaining, length);
 
         T value = Unsafe.As<byte, T>(ref Source);
-        Position += length;
+        _position += length;
 
         return value;
     }
@@ -47,12 +47,13 @@ partial struct MemoryReader
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ReadOnlySpan<byte> ReadBytes(int count)
     {
-        Guard.IsGreaterThanOrEqualTo(_length - Position, count);
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+        Guard.IsGreaterThanOrEqualTo(Remaining, count);
 
         ReadOnlySpan<byte> buffer =
             MemoryMarshal.CreateReadOnlySpan(ref Source, count);
 
-        Position += count;
+        _position += count;
         return buffer;
     }
 }

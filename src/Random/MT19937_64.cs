@@ -30,7 +30,6 @@ public sealed partial class MT19937_64
     /// <summary>
     ///     Initializes state with a seed
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void Init(ulong seed, Span<ulong> mt, ref int mti)
     {
         mt[0] = seed;
@@ -44,7 +43,6 @@ public sealed partial class MT19937_64
     /// <summary>
     ///     Initialize state with a seed and an array
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void InitByArray(ulong seed, ReadOnlySpan<ulong> array, Span<ulong> mt, ref int mti)
     {
         Init(seed, mt, ref mti);
@@ -84,7 +82,6 @@ public sealed partial class MT19937_64
     /// <summary>
     ///     Generates a random number on [0, 2^64-1] interval
     /// </summary>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static ulong Int64(Span<ulong> mt, ref int mti)
     {
         ulong x;

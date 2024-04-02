@@ -21,10 +21,10 @@ partial struct RentedMemory<T>
         MemoryMarshal.CreateReadOnlySpan(ref this.Reference, this.Length);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Span<T>(RentedMemory<T> rentedArray) =>
-        rentedArray.AsSpan();
+    public static implicit operator Span<T>(RentedMemory<T> rented) =>
+        rented.AsSpan();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ReadOnlySpan<T>(RentedMemory<T> rentedArray) =>
-        rentedArray.AsReadOnlySpan();
+    public static implicit operator ReadOnlySpan<T>(RentedMemory<T> rented) =>
+        rented.AsReadOnlySpan();
 }

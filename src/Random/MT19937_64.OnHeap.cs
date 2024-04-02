@@ -30,7 +30,7 @@ partial class MT19937_64
             _mt = mt;
         }
 
-        Init(seed, _mt, ref _mti);
+        Init(seed);
     }
 
     // ReSharper disable once CommentTypo
@@ -49,8 +49,16 @@ partial class MT19937_64
             _mt = mt;
         }
 
-        InitByArray(seed, array, _mt, ref _mti);
+        InitByArray(seed, array);
     }
+
+    /// <inheritdoc cref="Init(ulong, Span{ulong}, ref int)" />
+    public void Init(ulong seed) =>
+        Init(seed, _mt, ref _mti);
+
+    /// <inheritdoc cref="InitByArray(ulong, ReadOnlySpan{ulong}, Span{ulong}, ref int)" />
+    public void InitByArray(ulong seed, ReadOnlySpan<ulong> array) =>
+        InitByArray(seed, array, _mt, ref _mti);
 
     /// <inheritdoc cref="Int64(Span{ulong}, ref int)" />
     public ulong Int64() =>

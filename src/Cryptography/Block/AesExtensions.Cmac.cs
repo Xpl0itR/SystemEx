@@ -41,7 +41,7 @@ public static partial class AesExtensions
             ? source.Length
             : source.Length + (BlockLength - source.Length % BlockLength);
 
-        using RentedMemory<byte> rented = new(bufferLen);
+        using RentedMemory<byte> rented = new(bufferLen, clearMemory: true);
         Span<byte> buffer = rented.AsSpan();
 
         CopyHelper.CopySpanUnchecked(source, buffer);
@@ -52,15 +52,16 @@ public static partial class AesExtensions
             buffer[source.Length] = 0x80;
         }
 
+        int start = bufferLen - BlockLength;
         for (int i = 0; i < BlockLength; i++)
         {
-            buffer[buffer.Length - BlockLength + i] ^= key[i];
+            buffer[start + i] ^= key[i];
         }
         
         aes.EncryptCbc(buffer, zero, buffer, PaddingMode.None);
 
         CopyHelper.CopySpanUnchecked(
-            buffer.SliceReadOnly(bufferLen - BlockLength, BlockLength),
+            buffer.SliceReadOnly(start, BlockLength),
             destination);
     }
 

@@ -24,29 +24,39 @@ partial struct MemoryWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(byte value)
     {
-        Guard.IsGreaterThanOrEqualTo(_length - Position, 1);
+        Guard.IsGreaterThanOrEqualTo(Remaining, 1);
 
         Destination = value;
-        Position++;
+        _position++;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write<T>(in T value) where T : unmanaged
     {
         int length = Unsafe.SizeOf<T>();
-        Guard.IsGreaterThanOrEqualTo(_length - Position, length);
+        Guard.IsGreaterThanOrEqualTo(Remaining, length);
 
-        Unsafe.As<byte, T>(ref Destination) =  value;
-        Position                            += length;
+        Unsafe.As<byte, T>(ref Destination) = value;
+        _position                          += length;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(ArraySegment<byte> buffer)
+    {
+        Guard.IsNotNull(buffer.Array);
+        Write(ref MemoryMarshalEx.GetArrayDataReference(buffer.Array, buffer.Offset), buffer.Count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(byte[] buffer) =>
-        Write(buffer, 0, buffer.Length);
+        Write(ref MemoryMarshal.GetArrayDataReference(buffer), buffer.Length);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(byte[] buffer, int offset, int count) =>
+    public void Write(byte[] buffer, int offset, int count)
+    {
+        Guard.HasSizeGreaterThanOrEqualTo(buffer, offset + count);
         Write(ref MemoryMarshalEx.GetArrayDataReference(buffer, offset), count);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(Span<byte> buffer) =>
@@ -59,10 +69,11 @@ partial struct MemoryWriter
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ref byte buffer, int length)
     {
-        Guard.IsGreaterThanOrEqualTo(_length - Position, length);
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+        Guard.IsGreaterThanOrEqualTo(Remaining, length);
 
         Unsafe.CopyBlock(ref Destination, ref buffer, checked((uint)length));
-        Position += length;
+        _position += length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -72,13 +83,13 @@ partial struct MemoryWriter
 
         Span<byte> dst = DestinationSpan;
         fixed (byte* dstPtr = dst)
-            Position += encoding.GetBytes(&chr, 1, dstPtr, dst.Length);
+            _position += encoding.GetBytes(&chr, 1, dstPtr, dst.Length);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySpan<char> chars, System.Text.Encoding? encoding = null)
     {
         encoding ??= System.Text.Encoding.UTF8;
-        Position += encoding.GetBytes(chars, DestinationSpan);
+        _position += encoding.GetBytes(chars, DestinationSpan);
     }
 }

@@ -8,7 +8,6 @@ using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using CommunityToolkit.Diagnostics;
 
 namespace SystemEx.Memory;
 
@@ -39,14 +38,11 @@ public partial struct RentedMemory<T> : IDisposable where T : unmanaged
         }
     }
 
-    public void Expand(int count)
+    public void EnsureCapacity(int capacity)
     {
-        Guard.IsGreaterThanOrEqualTo(count, 0);
-        int newLength = Length + count;
-
-        if (BackingArray.Length < newLength)
+        if (BackingArray.Length < capacity)
         {
-            T[] newArray = _arrayPool.Rent(newLength);
+            T[] newArray = _arrayPool.Rent(capacity);
 
             if (BackingArray.Length > 0)
             {
@@ -63,9 +59,13 @@ public partial struct RentedMemory<T> : IDisposable where T : unmanaged
             }
         }
 
-        Length = newLength;
+        if (Length < capacity)
+        {
+            Length = capacity;
+        }
     }
 
+    /// <inheritdoc />
     public readonly void Dispose()
     {
         _gcHandle?.Free();

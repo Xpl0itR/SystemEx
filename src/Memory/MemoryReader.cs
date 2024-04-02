@@ -16,6 +16,7 @@ public ref partial struct MemoryReader
 {
     private readonly ref byte _ref;
     private readonly int _length;
+    private int _position;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public MemoryReader(ref byte @ref, int length)
@@ -55,17 +56,34 @@ public ref partial struct MemoryReader
             segment.Array, segment.Offset);
     }
 
-    public int Position;
+    public int Position
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => _position;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _position = value;
+        }
+    }
+
+    public readonly int Remaining
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _length - _position;
+    }
 
     public readonly ref byte Source
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ref Unsafe.AddByteOffset(ref _ref, Position);
+        get => ref Unsafe.AddByteOffset(ref _ref, _position);
     }
 
     public readonly ReadOnlySpan<byte> SourceSpan
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => MemoryMarshal.CreateReadOnlySpan(ref Source, _length - Position);
+        get => MemoryMarshal.CreateReadOnlySpan(ref Source, Remaining);
     }
 }

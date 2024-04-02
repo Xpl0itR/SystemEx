@@ -16,6 +16,7 @@ public ref partial struct MemoryWriter
 {
     private readonly ref byte _ref;
     private readonly int _length;
+    private int _position;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public MemoryWriter(ref byte @ref, int length)
@@ -48,17 +49,34 @@ public ref partial struct MemoryWriter
             segment.Array, segment.Offset);
     }
 
-    public int Position;
+    public int Position
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        readonly get => _position;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _position = value;
+        }
+    }
+
+    public readonly int Remaining
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => _length - _position;
+    }
 
     public readonly ref byte Destination
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ref Unsafe.AddByteOffset(ref _ref, Position);
+        get => ref Unsafe.AddByteOffset(ref _ref, _position);
     }
 
     public readonly Span<byte> DestinationSpan
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => MemoryMarshal.CreateSpan(ref Destination, _length - Position);
+        get => MemoryMarshal.CreateSpan(ref Destination, Remaining);
     }
 }

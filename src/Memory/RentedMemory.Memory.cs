@@ -13,17 +13,17 @@ partial struct RentedMemory<T>
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly Memory<T> AsMemory(int offset = 0, int? length = null) =>
-        new(this.BackingArray, offset, length ?? this.Length);
+        new(this.BackingArray, offset, length ?? this.Length - offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public readonly ReadOnlyMemory<T> AsReadOnlyMemory(int offset = 0, int? length = null) =>
-        new(this.BackingArray, offset, length ?? this.Length);
+        new(this.BackingArray, offset, length ?? this.Length - offset);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator Memory<T>(RentedMemory<T> rentedArray) =>
-        rentedArray.AsMemory();
+    public static implicit operator Memory<T>(RentedMemory<T> rented) =>
+        rented.AsMemory();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static implicit operator ReadOnlyMemory<T>(RentedMemory<T> rentedArray) =>
-        rentedArray.AsReadOnlyMemory();
+    public static implicit operator ReadOnlyMemory<T>(RentedMemory<T> rented) =>
+        rented.AsReadOnlyMemory();
 }

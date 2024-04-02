@@ -23,27 +23,40 @@ partial class MT19937_64
         /// <summary>
         ///     Creates an instance of the 64-bit Mersenne Twister on the stack and initializes state with a seed
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OnStack(Span<ulong> mt, ulong seed = DefaultSeed)
         {
             Guard.HasSizeEqualTo(mt, Nn);
             _mt = mt;
 
-            Init(seed, _mt, ref _mti);
+            Init(seed);
         }
 
         // ReSharper disable once CommentTypo
         /// <summary>
         ///     Creates an instance of the 64-bit Mersenne Twister on the stack and initializes state with a seed and an array
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public OnStack(Span<ulong> mt, ReadOnlySpan<ulong> array, ulong seed = DefaultSeedArray)
         {
             Guard.HasSizeEqualTo(mt, Nn);
             _mt = mt;
 
-            InitByArray(seed, array, _mt, ref _mti);
+            InitByArray(seed, array);
         }
 
+        /// <inheritdoc cref="MT19937_64.Init(ulong, Span{ulong}, ref int)" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Init(ulong seed) =>
+            MT19937_64.Init(seed, _mt, ref _mti);
+
+        /// <inheritdoc cref="MT19937_64.InitByArray(ulong, ReadOnlySpan{ulong}, Span{ulong}, ref int)" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void InitByArray(ulong seed, ReadOnlySpan<ulong> array) =>
+            MT19937_64.InitByArray(seed, array, _mt, ref _mti);
+
         /// <inheritdoc cref="MT19937_64.Int64(Span{ulong}, ref int)" />
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ulong Int64() =>
             MT19937_64.Int64(_mt, ref _mti);
 
