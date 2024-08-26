@@ -84,7 +84,7 @@ public static partial class HttpMessageInvokerExtensions
             ThrowHttpRequestException(response.StatusCode,
                                       $"Response body status code was expected to be {HttpStatusCode.PartialContent} but was {response.StatusCode} instead.");
         }
-        response.Dispose();
+
         Stream stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         return stream.CanSeek // If stream is not seekable the length property is not set
             ? stream

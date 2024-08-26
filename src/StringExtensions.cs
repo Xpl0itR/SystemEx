@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace SystemEx;
@@ -12,7 +13,29 @@ namespace SystemEx;
 public static class StringExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountUpper(this string str, int i = 0)
+    public static int CountChar(this string str, char chr) =>
+        CountChar(str.AsSpan(), chr);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CountChar(this ReadOnlySpan<char> str, char chr)
+    {
+        int n, count = 0;
+
+        while ((n = str.IndexOf(chr)) >= 0)
+        {
+            str = str.Slice(n + 1);
+            count++;
+        }
+        
+        return count;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CountUpper(this string str, int i = 0) =>
+        CountUpper(str.AsSpan(), i);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CountUpper(this ReadOnlySpan<char> str, int i = 0)
     {
         int count = 0;
 
@@ -23,8 +46,21 @@ public static class StringExtensions
         return count;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToSnakeCaseLower(this string str) =>
-        string.Create(str.Length + CountUpper(str, 1), str, (newString, oldString) =>
+        string.Create(str.Length + CountUpper(str, 1), str, ToSnakeCaseLowerAction);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string ToSnakeCaseUpper(this string str) =>
+        string.Create(str.Length + CountUpper(str, 1), str, ToSnakeCaseUpperAction);
+
+    public static string TrimEnd(this string @string, string trimStr) =>
+        @string.EndsWith(trimStr, StringComparison.Ordinal)
+            ? @string[..^trimStr.Length]
+            : @string;
+
+    private static readonly SpanAction<char, string> ToSnakeCaseLowerAction =
+        (newString, oldString) =>
         {
             newString[0] = char.ToLowerInvariant(oldString[0]);
 
@@ -43,10 +79,10 @@ public static class StringExtensions
                     newString[j] = chr;
                 }
             }
-        });
+        };
 
-    public static string ToSnakeCaseUpper(this string str) =>
-        string.Create(str.Length + CountUpper(str, 1), str, (newString, oldString) =>
+    private static readonly SpanAction<char, string> ToSnakeCaseUpperAction =
+        (newString, oldString) =>
         {
             newString[0] = char.ToUpperInvariant(oldString[0]);
 
@@ -65,10 +101,5 @@ public static class StringExtensions
                     newString[j] = char.ToUpperInvariant(chr);
                 }
             }
-        });
-
-    public static string TrimEnd(this string @string, string trimStr) =>
-        @string.EndsWith(trimStr, StringComparison.Ordinal)
-            ? @string[..^trimStr.Length]
-            : @string;
+        };
 }

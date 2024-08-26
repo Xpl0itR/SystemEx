@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,8 +14,8 @@ public static class KeyValuePairsExtensions
 {
     public static void Add<TKey, TValue>(this ICollection<KeyValuePair<TKey, TValue>> keyValuePairs, TKey key, TValue value) =>
         keyValuePairs.Add(new KeyValuePair<TKey, TValue>(key, value));
-		
-	public static bool ContainsDuplicateKey<TKey, TValue>(
+        
+    public static bool ContainsDuplicateKey<TKey, TValue>(
         this IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs,
         IEqualityComparer<TKey>?                     comparer = null)
     {
@@ -28,6 +29,23 @@ public static class KeyValuePairsExtensions
             }
         }
 
+        return false;
+    }
+    
+    public static bool ContainsDuplicateBy<T, TKey>(
+        this IEnumerable<T> enumerable,
+        Func<T, TKey>       keySelector)
+    {
+        HashSet<TKey> set = new(5);
+        
+        foreach (T i in enumerable)
+        {
+            if (!set.Add(keySelector(i)))
+            {
+                return true;
+            }
+        }
+    
         return false;
     }
 

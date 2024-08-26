@@ -28,14 +28,6 @@ public static partial class JsonLinesSerializer
         }
     }
 
-    public static void Serialize<T>(Utf8JsonWriter writer, IEnumerable<T> values, JsonTypeInfo<T> jsonTypeInfo)
-    {
-        foreach (T value in values)
-        {
-            JsonSerializer.Serialize(writer, value, jsonTypeInfo);
-        }
-    }
-
     public static async Task SerializeAsync<T>(Stream stream, IEnumerable<T> values, JsonTypeInfo<T> jsonTypeInfo, CancellationToken ct = default)
     {
         foreach (T value in values)
