@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Xpl0itR
+﻿// Copyright © 2022-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,29 +10,44 @@ using SystemEx.Encoding;
 
 namespace SystemEx.Cryptography.Otp;
 
+// ReSharper disable MemberCanBeProtected.Global
 /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4226" /></remarks>
 public class HOtp : IDisposable
 {
     private readonly IncrementalHash _hmac;
     private readonly int _mod = 1000000;
 
-#region Constructor overloads
-    public HOtp(ReadOnlySpan<byte> key)
-        : this(key, HashAlgorithmName.SHA1)
-    { }
+    public HOtp(
+#if NET5_0_OR_GREATER
+        ReadOnlySpan<byte> key
+#else
+        byte[] key
+#endif
+    ) : this(key, HashAlgorithmName.SHA1) { }
+
+    public HOtp(
+#if NET5_0_OR_GREATER
+        ReadOnlySpan<byte> key,
+#else
+        byte[] key,
+#endif
+        HashAlgorithmName hashAlg) =>
+            _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
 
     public HOtp(ReadOnlySpan<char> keyBase32)
         : this(keyBase32, HashAlgorithmName.SHA1)
     { }
-#endregion
-
-    public HOtp(ReadOnlySpan<byte> key, HashAlgorithmName hashAlg) =>
-        _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
 
     public HOtp(ReadOnlySpan<char> keyBase32, HashAlgorithmName hashAlg)
     {
-        Span<byte> key = stackalloc byte[Base32.CountBytes(keyBase32.Length)];
-        Base32.GetBytes(keyBase32, key);
+#if NET5_0_OR_GREATER
+        Span<byte> key = stackalloc byte
+#else
+        byte[] key = new byte
+#endif
+            [Base32.CountBytes(keyBase32.Length)];
+
+        Base32.GetBytesUnchecked(keyBase32, key);
 
         _hmac = IncrementalHash.CreateHMAC(hashAlg, key);
     }

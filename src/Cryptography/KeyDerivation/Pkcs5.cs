@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2023-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,11 +25,17 @@ public static class Pkcs5
     /// <param name="length">Intended length of the derived key (dkLen), a positive integer, at most (2^32 - 1) * hLen</param>
     /// <returns>The Derived key (DK) produced by this function</returns>
     /// <remarks><see href="https://tools.ietf.org/html/rfc2898#section-5.2" /></remarks>
+#if NET5_0_OR_GREATER
     public static byte[] Pbkdf2(HashAlgorithmName prf, ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterations, int length)
     {
         byte[] derivedKey = GC.AllocateUninitializedArray<byte>(length);
-        Pbkdf2(prf, password, salt, iterations, derivedKey);
+#else
+    public static byte[] Pbkdf2(HashAlgorithmName prf, byte[] password, ReadOnlySpan<byte> salt, int iterations, int length)
+    {
+        byte[] derivedKey = new byte[length];
+#endif
 
+        Pbkdf2(prf, password, salt, iterations, derivedKey);
         return derivedKey;
     }
 
@@ -42,7 +48,16 @@ public static class Pkcs5
     /// <param name="iterations">Number of rounds (c) of hashing per block</param>
     /// <param name="derivedKey">The Derived key (DK) produced by this function</param>
     /// <remarks><see href="https://tools.ietf.org/html/rfc2898#section-5.2" /></remarks>
-    public static void Pbkdf2(HashAlgorithmName prf, ReadOnlySpan<byte> password, ReadOnlySpan<byte> salt, int iterations, Span<byte> derivedKey)
+    public static void Pbkdf2(
+        HashAlgorithmName prf,
+#if NET5_0_OR_GREATER
+        ReadOnlySpan<byte> password,
+#else
+        byte[] password,
+#endif
+        ReadOnlySpan<byte> salt,
+        int iterations,
+        Span<byte> derivedKey)
     {
         using IncrementalHash hmac = IncrementalHash.CreateHMAC(prf, password);
         Pbkdf2(hmac, salt, iterations, derivedKey);
@@ -61,11 +76,7 @@ public static class Pkcs5
         int dkLen = derivedKey.Length;
         int hLen  = hmac.HashLengthInBytes;
 
-        if (dkLen > (2 ^ 32 - 1) * hLen)
-        {
-            ThrowHelper.ThrowArgumentOutOfRangeException(nameof(derivedKey), "derived key too long");
-        }
-
+        Guard.IsLessThanOrEqualTo(dkLen, (2^32 - 1) * hLen);
         Span<byte> hash = stackalloc byte[hLen];
 
         int blockCount = (int)Math.Ceiling((double)dkLen / hLen);
@@ -83,9 +94,7 @@ public static class Pkcs5
             int blockLength = Math.Min(dkLen - blockOffset, hLen);
 
             Span<byte> block = derivedKey.Slice(blockOffset, blockLength);
-            CopyHelper.CopySpanUnchecked(
-                hash.SliceReadOnly(0, blockLength),
-                block);
+            hash.Slice(0, blockLength).CopyTo(block);
 
             for (int i = 1; i < iterations; i++)
             {

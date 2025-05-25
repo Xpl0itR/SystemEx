@@ -28,21 +28,6 @@ partial struct MemoryWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteHalfLittleEndian(Half value)
-    {
-        if (BitConverter.IsLittleEndian)
-        {
-            Write(in value);
-        }
-        else
-        {
-            short temp = BinaryPrimitives.ReverseEndianness(
-                BitConverter.HalfToInt16Bits(value));
-            Write(in temp);
-        }
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteInt16LittleEndian(short value)
     {
         if (!BitConverter.IsLittleEndian)
@@ -60,22 +45,6 @@ partial struct MemoryWriter
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void WriteInt64LittleEndian(long value)
-    {
-        if (!BitConverter.IsLittleEndian)
-            value = BinaryPrimitives.ReverseEndianness(value);
-        Write(in value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteInt128LittleEndian(Int128 value)
-    {
-        if (!BitConverter.IsLittleEndian)
-            value = BinaryPrimitives.ReverseEndianness(value);
-        Write(in value);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteIntPtrLittleEndian(nint value)
     {
         if (!BitConverter.IsLittleEndian)
             value = BinaryPrimitives.ReverseEndianness(value);
@@ -121,8 +90,25 @@ partial struct MemoryWriter
         Write(in value);
     }
 
+#if NET6_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WriteUInt128LittleEndian(UInt128 value)
+    public void WriteHalfLittleEndian(Half value)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            Write(in value);
+        }
+        else
+        {
+            short temp = BinaryPrimitives.ReverseEndianness(
+                BitConverter.HalfToInt16Bits(value));
+            Write(in temp);
+        }
+    }
+#endif
+#if NET8_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteIntPtrLittleEndian(nint value)
     {
         if (!BitConverter.IsLittleEndian)
             value = BinaryPrimitives.ReverseEndianness(value);
@@ -136,4 +122,21 @@ partial struct MemoryWriter
             value = BinaryPrimitives.ReverseEndianness(value);
         Write(in value);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteInt128LittleEndian(Int128 value)
+    {
+        if (!BitConverter.IsLittleEndian)
+            value = BinaryPrimitives.ReverseEndianness(value);
+        Write(in value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteUInt128LittleEndian(UInt128 value)
+    {
+        if (!BitConverter.IsLittleEndian)
+            value = BinaryPrimitives.ReverseEndianness(value);
+        Write(in value);
+    }
+#endif
 }

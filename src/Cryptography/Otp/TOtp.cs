@@ -17,12 +17,23 @@ public sealed class TOtp : HOtp
 {
     public int TimeStep = 30;
 
-#region Constructor overloads
-    public TOtp(ReadOnlySpan<byte> key)
+    public TOtp(
+#if NET5_0_OR_GREATER
+        ReadOnlySpan<byte> key
+#else
+        byte[] key
+#endif
+        )
         : base(key)
     { }
 
-    public TOtp(ReadOnlySpan<byte> key, HashAlgorithmName hashAlg)
+    public TOtp(
+#if NET5_0_OR_GREATER
+        ReadOnlySpan<byte> key,
+#else
+        byte[] key,
+#endif
+        HashAlgorithmName hashAlg)
         : base(key, hashAlg)
     { }
 
@@ -33,7 +44,6 @@ public sealed class TOtp : HOtp
     public TOtp(ReadOnlySpan<char> keyBase32, HashAlgorithmName hashAlg)
         : base(keyBase32, hashAlg)
     { }
-#endregion
 
     public int Now() =>
         ComputeCode(DateTimeOffset.UtcNow);

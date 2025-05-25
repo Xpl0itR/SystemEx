@@ -1,35 +1,17 @@
-// Copyright © 2024 Xpl0itR
+// Copyright © 2024-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
+using SystemEx.Memory;
 
 namespace SystemEx;
 
 public static class StringExtensions
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountChar(this string str, char chr) =>
-        CountChar(str.AsSpan(), chr);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountChar(this ReadOnlySpan<char> str, char chr)
-    {
-        int n, count = 0;
-
-        while ((n = str.IndexOf(chr)) >= 0)
-        {
-            str = str.Slice(n + 1);
-            count++;
-        }
-        
-        return count;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int CountUpper(this string str, int i = 0) =>
         CountUpper(str.AsSpan(), i);
@@ -46,60 +28,77 @@ public static class StringExtensions
         return count;
     }
 
+    public static string TrimEnd(this string str, string trimStr)
+    {
+        ReadOnlySpan<char> trimmed = TrimEnd(str.AsSpan(), trimStr.AsSpan());
+        return trimmed.Length == str.Length
+            ? str
+            : trimmed.ToString();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ReadOnlySpan<char> TrimEnd(this ReadOnlySpan<char> str, ReadOnlySpan<char> trimStr) =>
+        str.EndsWith(trimStr)
+            ? str.Slice(0, str.Length - trimStr.Length)
+            : str;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToSnakeCaseLower(this string str) =>
-        string.Create(str.Length + CountUpper(str, 1), str, ToSnakeCaseLowerAction);
+        ToSnakeCaseLower(str.AsSpan());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToSnakeCaseUpper(this string str) =>
-        string.Create(str.Length + CountUpper(str, 1), str, ToSnakeCaseUpperAction);
+        ToSnakeCaseUpper(str.AsSpan());
 
-    public static string TrimEnd(this string @string, string trimStr) =>
-        @string.EndsWith(trimStr, StringComparison.Ordinal)
-            ? @string[..^trimStr.Length]
-            : @string;
+    public static string ToSnakeCaseLower(this ReadOnlySpan<char> str)
+    {
+        string snakeStr = new('\0', str.Length + CountUpper(str, 1));
+        Span<char> dest = snakeStr.AsWriteableSpan();
 
-    private static readonly SpanAction<char, string> ToSnakeCaseLowerAction =
-        (newString, oldString) =>
+        dest[0] = char.ToLowerInvariant(str[0]);
+
+        char chr;
+        for (int i = 1, j = 1; i < str.Length; i++, j++)
         {
-            newString[0] = char.ToLowerInvariant(oldString[0]);
+            chr = str[i];
 
-            char chr;
-            for (int i = 1, j = 1; i < oldString.Length; i++, j++)
+            if (char.IsAsciiLetterUpper(chr))
             {
-                chr = oldString[i];
-
-                if (char.IsAsciiLetterUpper(chr))
-                {
-                    newString[j++] = '_';
-                    newString[j]   = char.ToLowerInvariant(chr);
-                }
-                else
-                {
-                    newString[j] = chr;
-                }
+                dest[j++] = '_';
+                dest[j]   = char.ToLowerInvariant(chr);
             }
-        };
+            else
+            {
+                dest[j] = chr;
+            }
+        }
 
-    private static readonly SpanAction<char, string> ToSnakeCaseUpperAction =
-        (newString, oldString) =>
+        return snakeStr;
+    }
+
+    public static string ToSnakeCaseUpper(this ReadOnlySpan<char> str)
+    {
+        string snakeStr = new('\0', str.Length + CountUpper(str, 1));
+        Span<char> dest = snakeStr.AsWriteableSpan();
+
+        dest[0] = char.ToUpperInvariant(str[0]);
+
+        char chr;
+        for (int i = 1, j = 1; i < str.Length; i++, j++)
         {
-            newString[0] = char.ToUpperInvariant(oldString[0]);
+            chr = str[i];
 
-            char chr;
-            for (int i = 1, j = 1; i < oldString.Length; i++, j++)
+            if (char.IsAsciiLetterUpper(chr))
             {
-                chr = oldString[i];
-
-                if (char.IsAsciiLetterUpper(chr))
-                {
-                    newString[j++] = '_';
-                    newString[j]   = chr;
-                }
-                else
-                {
-                    newString[j] = char.ToUpperInvariant(chr);
-                }
+                dest[j++] = '_';
+                dest[j]   = chr;
             }
-        };
+            else
+            {
+                dest[j] = char.ToUpperInvariant(chr);
+            }
+        }
+
+        return snakeStr;
+    }
 }

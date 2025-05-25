@@ -1,4 +1,4 @@
-﻿// Copyright © 2024 Xpl0itR
+﻿// Copyright © 2024-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,88 +8,91 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
+using CommunityToolkit.HighPerformance;
 
 namespace SystemEx.Memory;
 
 partial struct MemoryWriter
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(bool value) =>
-        Write(value ? (byte)1 : (byte)0);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(sbyte value) =>
-        Write((byte)value);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(byte value)
-    {
-        Guard.IsGreaterThanOrEqualTo(Remaining, 1);
-
-        Destination = value;
-        _position++;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write<T>(in T value) where T : unmanaged
     {
         int length = Unsafe.SizeOf<T>();
         Guard.IsGreaterThanOrEqualTo(Remaining, length);
 
-        Unsafe.As<byte, T>(ref Destination) = value;
-        _position                          += length;
+        Unsafe.WriteUnaligned(ref Destination, value);
+        _position += length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ArraySegment<byte> buffer)
     {
         Guard.IsNotNull(buffer.Array);
-        Write(ref MemoryMarshalEx.GetArrayDataReference(buffer.Array, buffer.Offset), buffer.Count);
+        Write(ref buffer.Array.DangerousGetReferenceAt(buffer.Offset), buffer.Count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(byte[] buffer) =>
-        Write(ref MemoryMarshal.GetArrayDataReference(buffer), buffer.Length);
+        Write(ref buffer.DangerousGetReference(), buffer.Length);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(byte[] buffer, int offset, int count)
     {
         Guard.HasSizeGreaterThanOrEqualTo(buffer, offset + count);
-        Write(ref MemoryMarshalEx.GetArrayDataReference(buffer, offset), count);
+        Write(ref buffer.DangerousGetReferenceAt(offset), count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(Span<byte> buffer) =>
+#if NET7_0_OR_GREATER
         Write(ref MemoryMarshal.GetReference(buffer), buffer.Length);
+#else
+        buffer.CopyTo(DestinationSpan);
+#endif
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ReadOnlySpan<byte> buffer) =>
+#if NET7_0_OR_GREATER
         Write(ref MemoryMarshal.GetReference(buffer), buffer.Length);
+#else
+        buffer.CopyTo(DestinationSpan);
+#endif
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void Write(void* buffer, int byteLength) =>
+        Write(ref Unsafe.AsRef<byte>(buffer), byteLength);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Write(ref byte buffer, int length)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(length);
-        Guard.IsGreaterThanOrEqualTo(Remaining, length);
+        Guard.IsBetweenOrEqualTo(length, 0, Remaining);
 
-        Unsafe.CopyBlock(ref Destination, ref buffer, checked((uint)length));
+        Unsafe.CopyBlockUnaligned(ref Destination, ref buffer, unchecked((uint)length));
         _position += length;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe void Write(char chr, System.Text.Encoding? encoding = null)
+    public unsafe void Write(char chr, System.Text.Encoding encoding)
     {
-        encoding ??= System.Text.Encoding.UTF8;
-
-        Span<byte> dst = DestinationSpan;
-        fixed (byte* dstPtr = dst)
-            _position += encoding.GetBytes(&chr, 1, dstPtr, dst.Length);
+        fixed (byte* dstPtr = &Destination)
+            _position += encoding.GetBytes(&chr, 1, dstPtr, Remaining);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(ReadOnlySpan<char> chars, System.Text.Encoding? encoding = null)
+    public void Write(ReadOnlySpan<char> chars, System.Text.Encoding? encoding = null) =>
+        Write(ref chars.DangerousGetReference(), chars.Length, encoding);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public unsafe void Write(ref char chars, int charCount, System.Text.Encoding? encoding = null)
     {
         encoding ??= System.Text.Encoding.UTF8;
-        _position += encoding.GetBytes(chars, DestinationSpan);
+
+        fixed (char* srcPtr = &chars)
+        fixed (byte* dstPtr = &Destination)
+            _position += encoding.GetBytes(srcPtr, charCount, dstPtr, Remaining);
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void WriteCBool(bool value) =>
+        Write<int>(value ? 1 : 0);
 }

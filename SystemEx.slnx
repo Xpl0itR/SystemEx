@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".github/workflows/release.yml" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/SystemEx.csproj" />
+  <Project Path="test/SystemEx.Tests.csproj" />
+</Solution>

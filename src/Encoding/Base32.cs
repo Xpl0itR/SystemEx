@@ -13,7 +13,7 @@ namespace SystemEx.Encoding;
 /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4648#section-6" /></remarks>
 public static partial class Base32
 {
-    public static void GetBytes(ReadOnlySpan<char> source, Span<byte> destination)
+    public static void GetBytesUnchecked(ReadOnlySpan<char> source, Span<byte> destination)
     {
         int current   = 0,
             count     = 0,
@@ -34,7 +34,7 @@ public static partial class Base32
         }
     }
 
-    public static void GetChars(ReadOnlySpan<byte> source, Span<char> destination)
+    public static void GetCharsUnchecked(ReadOnlySpan<byte> source, Span<char> destination)
     {
         int current   = source[0],
             next      = 1,

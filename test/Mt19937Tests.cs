@@ -1,5 +1,5 @@
 ﻿using System;
-using SystemEx.Random;
+using SystemEx.Cryptography.Random;
 using Xunit;
 
 namespace SystemEx.Tests;
@@ -433,10 +433,10 @@ public class Mt19937Tests
     [Fact]
     public void Int64AndReal2OnStack()
     {
-        MT19937_64.OnStack mt = new
+        MT19937_64.Slim mt = new
         (
             stackalloc ulong[MT19937_64.Nn],
-            stackalloc ulong[4] { 0x12345, 0x23456, 0x34567, 0x45678 }
+            [0x12345, 0x23456, 0x34567, 0x45678]
         );
 
         foreach (ulong expected in ExpectedInt64)

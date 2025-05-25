@@ -57,10 +57,10 @@ public sealed class RemoteZipArchive : IDisposable
     {
         centralDirEntry.ThrowIfInvalid();
 
-        using RentedMemory<byte> buffer = new(LocalFileHeader.FixedLength);
+        using RentedArray<byte> buffer = new(LocalFileHeader.FixedLength);
         await _httpMessageInvoker.ReadChunkAsync(buffer, _uri, _eTag, checked((long)centralDirEntry.LocalHeaderOffset), ct).ConfigureAwait(false);
 
-        ulong localFileHeaderLength = buffer.As<LocalFileHeader>().ThrowIfInvalid().Length;
+        ulong localFileHeaderLength = buffer.UnsafeRead<LocalFileHeader>().ThrowIfInvalid().Length;
         long  fileDataOffset        = checked((long)(centralDirEntry.LocalHeaderOffset + localFileHeaderLength));
 
         return await _httpMessageInvoker.GetChunkAsync(_uri, _eTag, fileDataOffset, checked((long)centralDirEntry.CompressedSize), ct).ConfigureAwait(false);
@@ -86,18 +86,18 @@ public sealed class RemoteZipArchive : IDisposable
         using HttpResponseMessage response      = await httpMessageInvoker.HeadRangeAsync(uri, ct).ConfigureAwait(false);
         long                      contentLength = response.Content.Headers.ContentLength!.Value;
         EntityTagHeaderValue?     eTag          = response.Headers.ETag;
-        using RentedMemory<byte>  buffer        = new(EndOfCentralDirectory64Record.FixedLength); // temp buffer size of largest struct
+        using RentedArray<byte>   buffer        = new(EndOfCentralDirectory64Record.FixedLength); // temp buffer size of largest struct
 
         Memory<byte> eocdBuffer = buffer.AsMemory(0, EndOfCentralDirectory64Locator.Length + EndOfCentralDirectoryRecord.Length);
         await httpMessageInvoker.ReadChunkFromEndAsync(eocdBuffer, uri, eTag, ct).ConfigureAwait(false);
 
-        EndOfCentralDirectory64Locator eocd64Locator = buffer.As<EndOfCentralDirectory64Locator>().ThrowIfInvalid();
+        EndOfCentralDirectory64Locator eocd64Locator = buffer.UnsafeRead<EndOfCentralDirectory64Locator>().ThrowIfInvalid();
         ulong centralDirOffset, centralDirLength, entryCount;
 
         if (eocd64Locator.Signature == EndOfCentralDirectory64Locator.ExpectedSignature)
         {
             await httpMessageInvoker.ReadChunkAsync(buffer, uri, eTag, checked((long)eocd64Locator.EOCD64RecordOffset), ct).ConfigureAwait(false);
-            EndOfCentralDirectory64Record eocd64Record = buffer.As<EndOfCentralDirectory64Record>().ThrowIfInvalid();
+            EndOfCentralDirectory64Record eocd64Record = buffer.UnsafeRead<EndOfCentralDirectory64Record>().ThrowIfInvalid();
 
             centralDirOffset = eocd64Record.CentralDirOffset;
             centralDirLength = eocd64Record.CentralDirLength;
@@ -105,7 +105,7 @@ public sealed class RemoteZipArchive : IDisposable
         }
         else
         {
-            EndOfCentralDirectoryRecord eocdRecord = buffer.As<EndOfCentralDirectoryRecord>(EndOfCentralDirectory64Locator.Length).ThrowIfInvalid();
+            EndOfCentralDirectoryRecord eocdRecord = buffer.UnsafeRead<EndOfCentralDirectoryRecord>(byteOffset: EndOfCentralDirectory64Locator.Length).ThrowIfInvalid();
             centralDirOffset = eocdRecord.CentralDirOffset;
             centralDirLength = eocdRecord.CentralDirLength;
             entryCount       = eocdRecord.EntryCount;
@@ -116,7 +116,7 @@ public sealed class RemoteZipArchive : IDisposable
             ThrowHelper.ThrowInvalidDataException("ISO/IEC 21320: Archives shall not be split or spanned.");
         }
 
-        using RentedMemory<byte> centralDirBuffer = new(checked((int)centralDirLength));
+        using RentedArray<byte> centralDirBuffer = new(checked((int)centralDirLength));
         await httpMessageInvoker.ReadChunkAsync(centralDirBuffer, uri, eTag, checked((long)centralDirOffset), ct).ConfigureAwait(false);
 
         CentralDirectory centralDirectory = new(centralDirBuffer, entryCount);

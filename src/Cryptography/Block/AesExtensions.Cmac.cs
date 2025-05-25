@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#if NET6_0_OR_GREATER
 using System;
 using System.Security.Cryptography;
 using SystemEx.Memory;
@@ -41,10 +42,10 @@ public static partial class AesExtensions
             ? source.Length
             : source.Length + (BlockLength - source.Length % BlockLength);
 
-        using RentedMemory<byte> rented = new(bufferLen, clearMemory: true);
+        using RentedArray<byte> rented = new(bufferLen, clearMemory: true);
         Span<byte> buffer = rented.AsSpan();
 
-        CopyHelper.CopySpanUnchecked(source, buffer);
+        source.CopyTo(buffer);
 
         if (!fullBlock)
         {
@@ -57,12 +58,9 @@ public static partial class AesExtensions
         {
             buffer[start + i] ^= key[i];
         }
-        
-        aes.EncryptCbc(buffer, zero, buffer, PaddingMode.None);
 
-        CopyHelper.CopySpanUnchecked(
-            buffer.SliceReadOnly(start, BlockLength),
-            destination);
+        aes.EncryptCbc(buffer, zero, buffer, PaddingMode.None);
+        buffer.Slice(start, BlockLength).CopyTo(destination);
     }
 
     private static void ShiftKey(Span<byte> key)
@@ -84,3 +82,4 @@ public static partial class AesExtensions
         }
     }
 }
+#endif

@@ -21,18 +21,9 @@ public class Base32Tests
     } // ReSharper restore StringLiteralTypo
 
     [Theory, MemberData(nameof(TestVectors))]
-    public void GetStringFromBytes(string asciiString, string expectedBase32)
+    public void GetString(string asciiString, string expectedBase32)
     {
         byte[] bytes        = ASCII.GetBytes(asciiString);
-        string actualBase32 = Base32.GetString(bytes);
-
-        Assert.Equal(expectedBase32, actualBase32);
-    }
-
-    [Theory, MemberData(nameof(TestVectors))]
-    public void GetStringFromSpan(string asciiString, string expectedBase32)
-    {
-        ReadOnlySpan<byte> bytes = ASCII.GetBytes(asciiString);
         string actualBase32 = Base32.GetString(bytes);
 
         Assert.Equal(expectedBase32, actualBase32);
@@ -44,7 +35,7 @@ public class Base32Tests
         byte[] bytes        = ASCII.GetBytes(asciiString);
         char[] actualBase32 = Base32.GetChars(bytes);
 
-        Assert.Equal(expectedBase32, actualBase32);
+        Assert.Equal(expectedBase32.ToCharArray(), actualBase32);
     }
 
     [Theory, MemberData(nameof(TestVectors))]

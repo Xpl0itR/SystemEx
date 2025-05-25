@@ -85,7 +85,11 @@ public static partial class HttpMessageInvokerExtensions
                                       $"Response body status code was expected to be {HttpStatusCode.PartialContent} but was {response.StatusCode} instead.");
         }
 
-        Stream stream = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+        Stream stream = await response.Content.ReadAsStreamAsync(
+#if NET5_0_OR_GREATER
+            ct
+#endif
+            ).ConfigureAwait(false);
         return stream.CanSeek // If stream is not seekable the length property is not set
             ? stream
             : new LengthStream(stream, response.Content.Headers.ContentLength);
@@ -136,5 +140,9 @@ public static partial class HttpMessageInvokerExtensions
 
     [DoesNotReturn, MethodImpl(MethodImplOptions.NoInlining)]
     private static void ThrowHttpRequestException(HttpStatusCode statusCode, string message) =>
+#if NET5_0_OR_GREATER
         throw new HttpRequestException(message, inner: null, statusCode);
+#else
+        throw new HttpRequestException(message);
+#endif
 }

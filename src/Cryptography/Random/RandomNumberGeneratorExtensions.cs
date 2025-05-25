@@ -1,4 +1,4 @@
-﻿// Copyright © 2023 Xpl0itR
+﻿// Copyright © 2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,13 +7,16 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
-namespace SystemEx.Random;
+namespace SystemEx.Cryptography.Random;
 
-public static class RandomString
+public static class RandomNumberGeneratorExtensions
 {
     private const string Alphanumerics = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static string Alphanumeric(int length) =>
-        RandomNumberGenerator.GetString(Alphanumerics, length);
+    extension(RandomNumberGenerator)
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string GetAlphanumericString(int length) =>
+            RandomNumberGenerator.GetString(Alphanumerics, length);
+    }
 }

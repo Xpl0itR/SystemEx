@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using SystemEx.Cryptography.Stream;
-using SystemEx.Memory;
 using Xunit;
 
 namespace SystemEx.Tests;
@@ -62,7 +61,7 @@ public class Rc4Tests
         byte[] temp           = new byte[offset + actualOutput.Length];
 
         Rc4.XorBlock(key, temp);
-        CopyHelper.CopyArrayUnchecked(temp, offset, actualOutput, 0, actualOutput.Length);
+        Buffer.BlockCopy(temp, offset, actualOutput, 0, actualOutput.Length);
 
         Assert.Equal(expectedOutput, actualOutput);
     }

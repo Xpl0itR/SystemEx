@@ -21,14 +21,6 @@ partial struct MemoryReader
                     Read<long>()));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Half ReadHalfLittleEndian() =>
-        BitConverter.IsLittleEndian
-            ? Read<Half>()
-            : BitConverter.Int16BitsToHalf(
-                BinaryPrimitives.ReverseEndianness(
-                    Read<short>()));
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public short ReadInt16LittleEndian()
     {
         short value = Read<short>();
@@ -54,28 +46,6 @@ partial struct MemoryReader
     public long ReadInt64LittleEndian()
     {
         long value = Read<long>();
-
-        if (!BitConverter.IsLittleEndian)
-            value = BinaryPrimitives.ReverseEndianness(value);
-
-        return value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Int128 ReadInt128LittleEndian()
-    {
-        Int128 value = Read<Int128>();
-
-        if (!BitConverter.IsLittleEndian)
-            value = BinaryPrimitives.ReverseEndianness(value);
-
-        return value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public nint ReadIntPtrLittleEndian()
-    {
-        nint value = Read<nint>();
 
         if (!BitConverter.IsLittleEndian)
             value = BinaryPrimitives.ReverseEndianness(value);
@@ -124,10 +94,20 @@ partial struct MemoryReader
         return value;
     }
 
+#if NET6_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public UInt128 ReadUInt128LittleEndian()
+    public Half ReadHalfLittleEndian() =>
+        BitConverter.IsLittleEndian
+            ? Read<Half>()
+            : BitConverter.Int16BitsToHalf(
+                BinaryPrimitives.ReverseEndianness(
+                    Read<short>()));
+#endif
+#if NET8_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public nint ReadIntPtrLittleEndian()
     {
-        UInt128 value = Read<UInt128>();
+        nint value = Read<nint>();
 
         if (!BitConverter.IsLittleEndian)
             value = BinaryPrimitives.ReverseEndianness(value);
@@ -145,4 +125,27 @@ partial struct MemoryReader
 
         return value;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Int128 ReadInt128LittleEndian()
+    {
+        Int128 value = Read<Int128>();
+
+        if (!BitConverter.IsLittleEndian)
+            value = BinaryPrimitives.ReverseEndianness(value);
+
+        return value;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public UInt128 ReadUInt128LittleEndian()
+    {
+        UInt128 value = Read<UInt128>();
+
+        if (!BitConverter.IsLittleEndian)
+            value = BinaryPrimitives.ReverseEndianness(value);
+
+        return value;
+    }
+#endif
 }

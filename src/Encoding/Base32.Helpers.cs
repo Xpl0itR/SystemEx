@@ -1,4 +1,4 @@
-﻿// Copyright © 2022 Xpl0itR
+﻿// Copyright © 2022-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -6,25 +6,47 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using CommunityToolkit.Diagnostics;
 using SystemEx.Memory;
 
 namespace SystemEx.Encoding;
 
 partial class Base32
 {
+    public static void GetBytes(ReadOnlySpan<char> source, Span<byte> destination)
+    {
+        Guard.HasSizeGreaterThan(source,      0);
+        Guard.HasSizeGreaterThan(destination, CountBytes(source.Length));
+
+        GetBytesUnchecked(source, destination);
+    }
+
+    public static void GetChars(ReadOnlySpan<byte> source, Span<char> destination)
+    {
+        Guard.HasSizeGreaterThan(source,      0);
+        Guard.HasSizeGreaterThan(destination, CountChars(source.Length));
+
+        GetCharsUnchecked(source, destination);
+    }
+
     public static byte[] GetBytes(ReadOnlySpan<char> source)
     {
         source = source.TrimEnd('=');
 
         if (source.IsEmpty)
         {
-            return Array.Empty<byte>();
+            return [];
         }
 
-        byte[] destination = GC.AllocateUninitializedArray<byte>(
-            CountBytes(source.Length));
+        int count = CountBytes(source.Length);
+        byte[] destination =
+#if NET5_0_OR_GREATER
+            GC.AllocateUninitializedArray<byte>(count);
+#else
+            new byte[count];
+#endif
 
-        GetBytes(source, destination);
+        GetBytesUnchecked(source, destination);
         
         return destination;
     }
@@ -33,28 +55,40 @@ partial class Base32
     {
         if (source.IsEmpty)
         {
-            return Array.Empty<char>();
+            return [];
         }
 
-        char[] destination = GC.AllocateUninitializedArray<char>(
-            CountChars(source.Length));
+        int count = CountChars(source.Length);
+        char[] destination =
+#if NET5_0_OR_GREATER
+            GC.AllocateUninitializedArray<char>(count);
+#else
+            new char[count];
+#endif
 
-        GetChars(source, destination);
+        GetCharsUnchecked(source, destination);
 
         return destination;
     }
 
     public static string GetString(ReadOnlySpan<byte> source)
     {
-        if (source.Length == 0)
+        if (source.IsEmpty)
         {
             return string.Empty;
         }
 
-        string destination = new('\0', CountChars(source.Length));
-        GetChars(source, destination.AsWriteableSpan());
+        int count = CountChars(source.Length);
+
+#if NET9_0_OR_GREATER
+        return string.Create(count, source, static (destination, source) =>
+            GetCharsUnchecked(source, destination));
+#else
+        string destination = new('\0', count);
+        GetCharsUnchecked(source, destination.AsWriteableSpan());
 
         return destination;
+#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

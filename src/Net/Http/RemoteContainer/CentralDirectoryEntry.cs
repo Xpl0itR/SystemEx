@@ -63,7 +63,7 @@ public sealed class CentralDirectoryEntry
 
         LocalHeaderOffset = reader.ReadUInt32LittleEndian();
         FileName = Encoding.GetString(
-            reader.ReadBytes(fileNameLength));
+            reader.ReadSlice(fileNameLength));
 
         while (extraFieldsLength > 0)
         {

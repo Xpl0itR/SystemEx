@@ -4,15 +4,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>Xpl0itR</Authors>
     <BaseOutputPath>$(SolutionDir)bin/$(MSBuildProjectName)</BaseOutputPath>
-    <Copyright>Copyright © 2022-2024 Xpl0itR</Copyright>
-    <Description>SystemEx is a library which extends the functionality of the .NET standard libraries, written in C# 12, targeting .NET 8.0 and later</Description>
+    <Copyright>Copyright © 2022-2025 Xpl0itR</Copyright>
+    <Description>SystemEx is a library which extends the functionality of the .NET standard libraries.</Description>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IncludeSymbols>true</IncludeSymbols>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <IsTrimmable>true</IsTrimmable>
-    <LangVersion>12</LangVersion>
+    <LangVersion>Preview</LangVersion>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
     <PackageId>Xpl0itR.$(MSBuildProjectName)</PackageId>
@@ -20,14 +21,17 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>netstandard2.1;net5.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.0" />
-    <PackageReference Include="ClrHeapAllocationAnalyzer" Version="3.0.0" PrivateAssets="all" />
-    <PackageReference Include="Meziantou.Analyzer" Version="2.0.135" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' OR '$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="System.Text.Json" Version="9.0.5" />
   </ItemGroup>
 
 </Project>

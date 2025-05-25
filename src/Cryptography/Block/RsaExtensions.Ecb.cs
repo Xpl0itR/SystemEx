@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#if NET7_0_OR_GREATER
 using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -77,18 +78,19 @@ public static partial class RsaExtensions
 
     public static byte[] DecryptEcbPkcs1(this RSA rsa, ReadOnlySpan<byte> source)
     {
-        using RentedMemory<byte> buffer = new(
+        using RentedArray<byte> buffer = new(
             MessageLengthMaxEcbPkcs1(rsa, source.Length));
 
         int count = DecryptEcbPkcs1(rsa, source, buffer);
 
         byte[] destination = GC.AllocateUninitializedArray<byte>(count);
-        CopyHelper.CopyArrayUnchecked(buffer.BackingArray, 0, destination, 0, count);
+        UnsafeEx.CopyBlockUnaligned(buffer.BackingArray, 0, destination, 0, count);
 
         return destination;
     }
 
 
+    // ReSharper disable once InconsistentNaming
     private const string RSACryptoServiceProviderObsoleteMessage =
         $"{nameof(RSACryptoServiceProvider)} does not implement the Span APIs, falling back to shim methods which copy data into heap allocated temporary buffers.";
 
@@ -100,3 +102,4 @@ public static partial class RsaExtensions
     public static void DecryptEcbPkcs1(this RSACryptoServiceProvider rsa, ReadOnlySpan<byte> source, Span<byte> destination) =>
         DecryptEcbPkcs1((RSA)rsa, source, destination);
 }
+#endif

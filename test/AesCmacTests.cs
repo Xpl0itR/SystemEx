@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET6_0_OR_GREATER
+using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using SystemEx.Cryptography.Block;
@@ -35,3 +36,4 @@ public class AesCmacTests
         Assert.Equal(expectedCmac, actualCmac);
     }
 }
+#endif

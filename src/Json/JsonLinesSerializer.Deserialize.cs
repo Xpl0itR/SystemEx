@@ -1,4 +1,4 @@
-// Copyright © 2024 Xpl0itR
+// Copyright © 2024-2025 Xpl0itR
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,11 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
+using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
+using SystemEx.IO;
 
 namespace SystemEx.Json;
 
@@ -24,23 +25,22 @@ public static partial class JsonLinesSerializer
     }
 
     public static IEnumerable<T> Deserialize<T>(TextReader reader, JsonTypeInfo<T> jsonTypeInfo) =>
-        Deserialize(ReadLines(reader), jsonTypeInfo);
+        Deserialize(reader.ReadAllLines(), jsonTypeInfo);
 
-    public static IEnumerable<T> Deserialize<T>(IEnumerable<string> lines, JsonTypeInfo<T> jsonTypeInfo) =>
-        lines.Select(line => JsonSerializer.Deserialize(line.AsSpan(), jsonTypeInfo) ?? ThrowHelper.ThrowInvalidDataException<T>());
+    public static IAsyncEnumerable<T> DeserializeAsync<T>(TextReader reader, JsonTypeInfo<T> jsonTypeInfo, CancellationToken ct = default) =>
+        Deserialize(reader.ReadAllLinesAsync(ct), jsonTypeInfo);
 
-    public static async IAsyncEnumerable<T> DeserializeAsync<T>(TextReader reader, JsonTypeInfo<T> jsonTypeInfo, CancellationToken ct = default)
+    public static IEnumerable<T> Deserialize<T>(IEnumerable<string> lines, JsonTypeInfo<T> jsonTypeInfo)
     {
-        while (await reader.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
-        {
-            yield return JsonSerializer.Deserialize(line, jsonTypeInfo)
-                         ?? ThrowHelper.ThrowInvalidDataException<T>();
-        }
+        foreach (string line in lines)
+            yield return JsonSerializer.Deserialize(line.AsSpan(), jsonTypeInfo)
+                      ?? ThrowHelper.ThrowInvalidDataException<T>();
     }
 
-    private static IEnumerable<string> ReadLines(TextReader reader)
+    public static async IAsyncEnumerable<T> Deserialize<T>(IAsyncEnumerable<string> lines, JsonTypeInfo<T> jsonTypeInfo)
     {
-        while (reader.ReadLine() is { } line)
-            yield return line;
+        await foreach (string line in lines.ConfigureAwait(false))
+            yield return JsonSerializer.Deserialize(line.AsSpan(), jsonTypeInfo)
+                      ?? ThrowHelper.ThrowInvalidDataException<T>();
     }
 }
