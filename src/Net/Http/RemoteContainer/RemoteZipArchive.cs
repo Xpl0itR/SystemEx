@@ -1,4 +1,4 @@
-﻿// Copyright © 2022-2024 Xpl0itR
+﻿// Copyright © 2022-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,26 +24,16 @@ namespace SystemEx.Net.Http.RemoteContainer;
 ///     subset of the <see href="https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT">ZIP Appnote</see>.
 ///     <br />In addition to this, the "ZIP file comment" (Appnote, 4.3.16) is assumed to have a length of 0 bytes.
 /// </remarks>
-public sealed class RemoteZipArchive : IDisposable
+public sealed class RemoteZipArchive
 {
     public readonly CentralDirectory CentralDirectory;
 
-    private readonly HttpMessageInvoker    _httpMessageInvoker;
+    private readonly HttpMessageInvoker    _http;
     private readonly Uri?                  _uri;
     private readonly EntityTagHeaderValue? _eTag;
-    private readonly bool                  _leaveOpen;
 
-    private RemoteZipArchive(HttpMessageInvoker httpMessageInvoker, Uri? uri, EntityTagHeaderValue? etag, CentralDirectory centralDirectory, bool leaveOpen) =>
-        (_httpMessageInvoker, _uri, _eTag, CentralDirectory, _leaveOpen) = (httpMessageInvoker, uri, etag, centralDirectory, leaveOpen);
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        if (!_leaveOpen)
-        {
-            _httpMessageInvoker.Dispose();
-        }
-    }
+    private RemoteZipArchive(HttpMessageInvoker http, Uri? uri, EntityTagHeaderValue? etag, CentralDirectory centralDirectory) =>
+        (_http, _uri, _eTag, CentralDirectory) = (http, uri, etag, centralDirectory);
 
     /// <summary>
     ///     Opens a <see cref="Stream" /> that represents the specified file in the ZIP archive.
@@ -58,45 +48,41 @@ public sealed class RemoteZipArchive : IDisposable
         centralDirEntry.ThrowIfInvalid();
 
         using RentedArray<byte> buffer = new(LocalFileHeader.FixedLength);
-        await _httpMessageInvoker.ReadChunkAsync(buffer, _uri, _eTag, checked((long)centralDirEntry.LocalHeaderOffset), ct).ConfigureAwait(false);
+        await _http.ReadChunkAsync(buffer, _uri, _eTag, checked((long)centralDirEntry.LocalHeaderOffset), ct).ConfigureAwait(false);
 
         ulong localFileHeaderLength = buffer.UnsafeRead<LocalFileHeader>().ThrowIfInvalid().Length;
         long  fileDataOffset        = checked((long)(centralDirEntry.LocalHeaderOffset + localFileHeaderLength));
 
-        return await _httpMessageInvoker.GetChunkAsync(_uri, _eTag, fileDataOffset, checked((long)centralDirEntry.CompressedSize), ct).ConfigureAwait(false);
+        return await _http.GetChunkAsync(_uri, _eTag, fileDataOffset, checked((long)centralDirEntry.CompressedSize), ct).ConfigureAwait(false);
     }
 
-    /// <inheritdoc cref="New(HttpMessageInvoker, Uri, CancellationToken, bool)" />
-    public static Task<RemoteZipArchive> New(HttpMessageInvoker httpMessageInvoker, string uri, CancellationToken ct, bool leaveOpen) =>
-        New(httpMessageInvoker, new Uri(uri, UriKind.RelativeOrAbsolute), ct, leaveOpen);
+    /// <inheritdoc cref="Open(HttpMessageInvoker, Uri, CancellationToken)" />
+    public static Task<RemoteZipArchive> Open(HttpMessageInvoker http, string uri, CancellationToken ct) =>
+        Open(http, new Uri(uri, UriKind.RelativeOrAbsolute), ct);
 
     /// <summary>
     ///     Asynchronously initializes a new instance of the <see cref="RemoteZipArchive" /> class.
     /// </summary>
-    /// <param name="httpMessageInvoker">HTTP message invoker used to send requests.</param>
+    /// <param name="http">HTTP message invoker used to send requests.</param>
     /// <param name="uri">Uniform Resource Identifier of the zip archive to be parsed.</param>
     /// <param name="ct">A cancellation token to propagate notification that operations should be canceled.</param>
-    /// <param name="leaveOpen">
-    ///     <see langword="true" /> to leave the <paramref name="httpMessageInvoker"/> open after the
-    ///     <see cref="RemoteZipArchive" /> object is disposed; otherwise, <see langword="false" />
-    /// </param>
     /// <exception cref="InvalidDataException"></exception>
-    public static async Task<RemoteZipArchive> New(HttpMessageInvoker httpMessageInvoker, Uri? uri, CancellationToken ct, bool leaveOpen)
+    public static async Task<RemoteZipArchive> Open(HttpMessageInvoker http, Uri? uri, CancellationToken ct)
     {
-        using HttpResponseMessage response      = await httpMessageInvoker.HeadRangeAsync(uri, ct).ConfigureAwait(false);
+        using HttpResponseMessage response      = await http.HeadRangeAsync(uri, ct).ConfigureAwait(false);
         long                      contentLength = response.Content.Headers.ContentLength!.Value;
         EntityTagHeaderValue?     eTag          = response.Headers.ETag;
         using RentedArray<byte>   buffer        = new(EndOfCentralDirectory64Record.FixedLength); // temp buffer size of largest struct
 
         Memory<byte> eocdBuffer = buffer.AsMemory(0, EndOfCentralDirectory64Locator.Length + EndOfCentralDirectoryRecord.Length);
-        await httpMessageInvoker.ReadChunkFromEndAsync(eocdBuffer, uri, eTag, ct).ConfigureAwait(false);
+        await http.ReadChunkFromEndAsync(eocdBuffer, uri, eTag, ct).ConfigureAwait(false);
 
         EndOfCentralDirectory64Locator eocd64Locator = buffer.UnsafeRead<EndOfCentralDirectory64Locator>().ThrowIfInvalid();
         ulong centralDirOffset, centralDirLength, entryCount;
 
         if (eocd64Locator.Signature == EndOfCentralDirectory64Locator.ExpectedSignature)
         {
-            await httpMessageInvoker.ReadChunkAsync(buffer, uri, eTag, checked((long)eocd64Locator.EOCD64RecordOffset), ct).ConfigureAwait(false);
+            await http.ReadChunkAsync(buffer, uri, eTag, checked((long)eocd64Locator.EOCD64RecordOffset), ct).ConfigureAwait(false);
             EndOfCentralDirectory64Record eocd64Record = buffer.UnsafeRead<EndOfCentralDirectory64Record>().ThrowIfInvalid();
 
             centralDirOffset = eocd64Record.CentralDirOffset;
@@ -117,9 +103,9 @@ public sealed class RemoteZipArchive : IDisposable
         }
 
         using RentedArray<byte> centralDirBuffer = new(checked((int)centralDirLength));
-        await httpMessageInvoker.ReadChunkAsync(centralDirBuffer, uri, eTag, checked((long)centralDirOffset), ct).ConfigureAwait(false);
+        await http.ReadChunkAsync(centralDirBuffer, uri, eTag, checked((long)centralDirOffset), ct).ConfigureAwait(false);
 
         CentralDirectory centralDirectory = new(centralDirBuffer, entryCount);
-        return new RemoteZipArchive(httpMessageInvoker, uri, eTag, centralDirectory, leaveOpen);
+        return new RemoteZipArchive(http, uri, eTag, centralDirectory);
     }
 }

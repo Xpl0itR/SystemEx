@@ -15,6 +15,13 @@ namespace SystemEx.Cryptography.Otp;
 public class HOtp : IDisposable
 {
     private readonly IncrementalHash _hmac;
+    private readonly
+#if NET9_0_OR_GREATER
+        System.Threading.Lock
+#else
+        object
+#endif
+        _hmacLock = new();
     private readonly int _mod = 1000000;
 
     public HOtp(
@@ -61,7 +68,7 @@ public class HOtp : IDisposable
     {
         Span<byte> hash = stackalloc byte[_hmac.HashLengthInBytes];
 
-        lock (_hmac)
+        lock (_hmacLock)
         {
             _hmac.AppendData(counter);
             _hmac.GetHashAndReset(hash);

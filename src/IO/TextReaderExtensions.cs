@@ -13,24 +13,27 @@ namespace SystemEx.IO;
 
 public static class TextReaderExtensions
 {
-    public static IEnumerable<string> ReadAllLines(this TextReader reader)
+    extension(TextReader reader)
     {
-        while (reader.ReadLine() is { } line)
-            yield return line;
-    }
-
-    public static async IAsyncEnumerable<string> ReadAllLinesAsync(this TextReader reader, [EnumeratorCancellation] CancellationToken ct = default)
-    {
-#if NET7_0_OR_GREATER
-        while (await reader.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
-            yield return line;
-#else
-        ct.ThrowIfCancellationRequested();
-        while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
+        public IEnumerable<string> ReadAllLines()
         {
-            yield return line;
-            ct.ThrowIfCancellationRequested();
+            while (reader.ReadLine() is { } line)
+                yield return line;
         }
+
+        public async IAsyncEnumerable<string> ReadAllLinesAsync([EnumeratorCancellation] CancellationToken ct = default)
+        {
+#if NET7_0_OR_GREATER
+            while (await reader.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
+                yield return line;
+#else
+            ct.ThrowIfCancellationRequested();
+            while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
+            {
+                yield return line;
+                ct.ThrowIfCancellationRequested();
+            }
 #endif
+        }
     }
 }
