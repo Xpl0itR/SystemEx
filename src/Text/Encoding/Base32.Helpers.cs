@@ -9,14 +9,14 @@ using System.Runtime.CompilerServices;
 using CommunityToolkit.Diagnostics;
 using SystemEx.Memory;
 
-namespace SystemEx.Encoding;
+namespace SystemEx.Text.Encoding;
 
 partial class Base32
 {
     public static void GetBytes(ReadOnlySpan<char> source, Span<byte> destination)
     {
         Guard.HasSizeGreaterThan(source,      0);
-        Guard.HasSizeGreaterThan(destination, CountBytes(source.Length));
+        Guard.HasSizeGreaterThan(destination, GetByteCount(source.Length));
 
         GetBytesUnchecked(source, destination);
     }
@@ -24,7 +24,7 @@ partial class Base32
     public static void GetChars(ReadOnlySpan<byte> source, Span<char> destination)
     {
         Guard.HasSizeGreaterThan(source,      0);
-        Guard.HasSizeGreaterThan(destination, CountChars(source.Length));
+        Guard.HasSizeGreaterThan(destination, GetCharCount(source.Length));
 
         GetCharsUnchecked(source, destination);
     }
@@ -38,7 +38,7 @@ partial class Base32
             return [];
         }
 
-        int count = CountBytes(source.Length);
+        int count = GetByteCount(source.Length);
         byte[] destination =
 #if NET5_0_OR_GREATER
             GC.AllocateUninitializedArray<byte>(count);
@@ -58,7 +58,7 @@ partial class Base32
             return [];
         }
 
-        int count = CountChars(source.Length);
+        int count = GetCharCount(source.Length);
         char[] destination =
 #if NET5_0_OR_GREATER
             GC.AllocateUninitializedArray<char>(count);
@@ -78,24 +78,18 @@ partial class Base32
             return string.Empty;
         }
 
-        int count = CountChars(source.Length);
-
-#if NET9_0_OR_GREATER
-        return string.Create(count, source, static (destination, source) =>
-            GetCharsUnchecked(source, destination));
-#else
-        string destination = new('\0', count);
+        string destination = string.Allocate(
+            GetCharCount(source.Length));
         GetCharsUnchecked(source, destination.AsWriteableSpan());
 
         return destination;
-#endif
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountBytes(int charCount) =>
+    public static int GetByteCount(int charCount) =>
         charCount * 5 / 8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int CountChars(int byteCount) =>
+    public static int GetCharCount(int byteCount) =>
         (int)Math.Ceiling(byteCount / 5d) * 8;
 }

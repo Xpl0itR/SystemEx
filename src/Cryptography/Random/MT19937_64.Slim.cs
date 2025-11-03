@@ -8,11 +8,13 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
+using Microsoft.CodeAnalysis;
 
 namespace SystemEx.Cryptography.Random;
 
 partial class MT19937_64
 {
+    [NonCopyable]
     [StructLayout(LayoutKind.Auto)]
     public ref struct Slim
     {

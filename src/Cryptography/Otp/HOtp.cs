@@ -6,7 +6,7 @@
 
 using System;
 using System.Security.Cryptography;
-using SystemEx.Encoding;
+using SystemEx.Text.Encoding;
 
 namespace SystemEx.Cryptography.Otp;
 
@@ -52,7 +52,7 @@ public class HOtp : IDisposable
 #else
         byte[] key = new byte
 #endif
-            [Base32.CountBytes(keyBase32.Length)];
+            [Base32.GetByteCount(keyBase32.Length)];
 
         Base32.GetBytesUnchecked(keyBase32, key);
 
@@ -66,6 +66,7 @@ public class HOtp : IDisposable
 
     public int ComputeCode(ReadOnlySpan<byte> counter)
     {
+        // ReSharper disable once InconsistentlySynchronizedField
         Span<byte> hash = stackalloc byte[_hmac.HashLengthInBytes];
 
         lock (_hmacLock)

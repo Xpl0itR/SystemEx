@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using SystemEx.IO;
 
-namespace SystemEx.Json;
+namespace SystemEx.Text.Json;
 
 public static partial class JsonLinesSerializer
 {

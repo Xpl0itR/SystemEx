@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 
-namespace SystemEx.Json;
+namespace SystemEx.Text.Json;
 
 public static partial class JsonLinesSerializer
 {

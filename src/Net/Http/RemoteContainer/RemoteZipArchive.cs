@@ -105,7 +105,9 @@ public sealed class RemoteZipArchive
         using RentedArray<byte> centralDirBuffer = new(checked((int)centralDirLength));
         await http.ReadChunkAsync(centralDirBuffer, uri, eTag, checked((long)centralDirOffset), ct).ConfigureAwait(false);
 
-        CentralDirectory centralDirectory = new(centralDirBuffer, entryCount);
+        MemoryReader     centralDirReader = new(centralDirBuffer);
+        CentralDirectory centralDirectory = new(ref centralDirReader, entryCount);
+
         return new RemoteZipArchive(http, uri, eTag, centralDirectory);
     }
 }

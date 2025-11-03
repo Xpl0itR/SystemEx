@@ -1,4 +1,4 @@
-// Copyright © 2024-2025 Xpl0itR
+﻿// Copyright © 2024-2025 Xpl0itR
 // 
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -59,8 +59,11 @@ public static class StringExtensions
 
         public string ToSnakeCaseLower()
         {
-            string     snakeStr = new('\0', str.Length + CountUpper(str, 1));
-            Span<char> dest     = snakeStr.AsWriteableSpan();
+            if (str.IsEmpty)
+                return string.Empty;
+
+            string     res  = string.Allocate(str.Length + CountUpper(str, 1));
+            Span<char> dest = res.AsWriteableSpan();
 
             dest[0] = char.ToLowerInvariant(str[0]);
 
@@ -80,13 +83,16 @@ public static class StringExtensions
                 }
             }
 
-            return snakeStr;
+            return res;
         }
 
         public string ToSnakeCaseUpper()
         {
-            string     snakeStr = new('\0', str.Length + CountUpper(str, 1));
-            Span<char> dest     = snakeStr.AsWriteableSpan();
+            if (str.IsEmpty)
+                return string.Empty;
+
+            string     res  = string.Allocate(str.Length + CountUpper(str, 1));
+            Span<char> dest = res.AsWriteableSpan();
 
             dest[0] = char.ToUpperInvariant(str[0]);
 
@@ -106,7 +112,7 @@ public static class StringExtensions
                 }
             }
 
-            return snakeStr;
+            return res;
         }
     }
 

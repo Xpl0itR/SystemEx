@@ -124,7 +124,10 @@ namespace System.Security.Cryptography
         {
             public static string GetString(ReadOnlySpan<char> choices, int length)
             {
-                string str = new('\0', length);
+                Guard.IsNotEmpty(choices);
+                Guard.IsGreaterThan(length, 0);
+
+                string str = string.Allocate(length);
                 Span<char> destination = str.AsWriteableSpan();
 
                 if ((choices.Length & (choices.Length - 1)) == 0 && choices.Length is > 0 and <= 256)

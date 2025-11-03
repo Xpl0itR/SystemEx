@@ -16,7 +16,7 @@ public sealed class CentralDirectory : IReadOnlyDictionary<string, CentralDirect
 {
     private readonly Dictionary<string, CentralDirectoryEntry> _centralDirEntries;
 
-    internal CentralDirectory(RentedArray<byte> buffer, ulong entryCount)
+    internal CentralDirectory(ref MemoryReader reader, ulong entryCount)
     {
         _centralDirEntries = new Dictionary<string, CentralDirectoryEntry>(
             entryCount > int.MaxValue
@@ -24,10 +24,9 @@ public sealed class CentralDirectory : IReadOnlyDictionary<string, CentralDirect
                 : (int)entryCount,
             StringComparer.Ordinal);
 
-        MemoryReader centralDirReader = new(buffer);
-        while (centralDirReader.Remaining > 0)
+        while (reader.Remaining > 0)
         {
-            CentralDirectoryEntry entry = new(ref centralDirReader);
+            CentralDirectoryEntry entry = new(ref reader);
             _centralDirEntries.Add(entry.FileName, entry);
         }
     }

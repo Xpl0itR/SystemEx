@@ -8,7 +8,7 @@ using System;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Diagnostics;
 
-namespace SystemEx.Encoding;
+namespace SystemEx.Text.Encoding;
 
 /// <remarks><see href="https://datatracker.ietf.org/doc/html/rfc4648#section-6" /></remarks>
 public static partial class Base32

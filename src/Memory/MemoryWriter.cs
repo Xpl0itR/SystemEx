@@ -9,9 +9,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.HighPerformance;
+using Microsoft.CodeAnalysis;
 
 namespace SystemEx.Memory;
 
+[NonCopyable]
 [StructLayout(LayoutKind.Auto)]
 public ref partial struct MemoryWriter
 {

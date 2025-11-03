@@ -51,12 +51,6 @@ public static class UnsafeEx
             Unsafe.SizeOf<T>());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static Span<char> AsWriteableSpan(this string str) =>
-        MemoryMarshal.CreateSpan(
-            ref str.DangerousGetReference(),
-            str.Length);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ref TTo As<TFrom, TTo>(ref TFrom ptr, int offset)
 #if NET9_0_OR_GREATER
         where TFrom : allows ref struct

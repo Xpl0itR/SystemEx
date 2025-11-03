@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using SystemEx.Encoding;
+using SystemEx.Text.Encoding;
 using Xunit;
 using static System.Text.Encoding;
 

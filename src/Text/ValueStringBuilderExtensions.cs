@@ -8,17 +8,22 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 
-namespace SystemEx;
+namespace SystemEx.Text;
 
 public static class ValueStringBuilderExtensions
 {
     extension(ValueStringBuilder builder)
     {
-        public void AppendUtf8(ReadOnlySpan<byte> buffer) =>
-            System.Text.Encoding.UTF8.GetChars(
-                buffer, builder.AppendSpan(buffer.Length));
+        public void AppendString(ReadOnlySpan<byte> buffer) =>
+            builder.AppendString(System.Text.Encoding.UTF8, buffer);
 
-        public void AppendQueryStringPair(string key, string? value, bool isFirst = false) =>
+        public void AppendString(System.Text.Encoding encoding, ReadOnlySpan<byte> buffer) =>
+            encoding.GetChars(
+                buffer,
+                builder.AppendSpan(
+                    encoding.GetCharCount(buffer)));
+
+        public void AppendQueryStringPair(string key, string value, bool isFirst = false) =>
             builder.AppendQueryStringPair(UrlEncoder.Default, key, value, isFirst);
 
         public void AppendQueryStringPair(UrlEncoder encoder, string key, string? value, bool isFirst = false) =>
@@ -40,7 +45,7 @@ public static class ValueStringBuilderExtensions
             builder.AsSpan().CopyTo(
                 destBuilder.AppendSpan(builder.Length));
 
-        public Uri ToUri(UriKind uriKind) =>
+        public Uri ToUri(UriKind uriKind = UriKind.RelativeOrAbsolute) =>
             new(builder.ToString(), uriKind);
     }
 }

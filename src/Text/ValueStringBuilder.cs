@@ -8,9 +8,11 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 
-namespace SystemEx
+namespace SystemEx.Text
 {
+    [NonCopyable]
     public ref struct ValueStringBuilder
     {
         private char[]?    _arrayToReturnToPool;
