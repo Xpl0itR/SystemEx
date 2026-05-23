@@ -54,4 +54,16 @@ public static class Extensions
         this IEnumerable<KeyValuePair<TKey, TValue>> keyValuePairs,
         IComparer<TKey>? comparer = null) =>
             keyValuePairs.OrderBy(static pair => pair.Key, comparer);
+
+    public static bool TryGetNext<T>(IReadOnlyList<T> list, int currentIndex, out T value)
+    {
+        if (list.Count > currentIndex + 1)
+        {
+            value = list[currentIndex + 1];
+            return true;
+        }
+
+        value = default(T)!;
+        return false;
+    }
 }

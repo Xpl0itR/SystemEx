@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 
 namespace SystemEx.Cryptography.Random;
@@ -15,7 +14,7 @@ namespace SystemEx.Cryptography.Random;
 ///     64-bit version of the Mersenne Twister pseudorandom number generator.
 /// </summary>
 /// <remarks><see href="http://www.math.sci.hiroshima-u.ac.jp/m-mat/MT/VERSIONS/C-LANG/mt19937-64.c"/></remarks>
-public sealed partial class MT19937_64 : IDisposable
+public sealed partial class MT19937_64
 {
     public const ulong DefaultSeed      = 5489UL;
     public const ulong DefaultSeedArray = 19650218UL;
@@ -28,7 +27,6 @@ public sealed partial class MT19937_64 : IDisposable
 
     private static readonly ulong[] Mag01 = [0UL, MatrixA];
 
-    private readonly ArrayPool<ulong> _arrayPool;
     private readonly ulong[] _mt;
     private int _mti;
 
@@ -36,10 +34,9 @@ public sealed partial class MT19937_64 : IDisposable
     /// <summary>
     ///     Creates an instance of the 64-bit Mersenne Twister and initializes state with a seed
     /// </summary>
-    public MT19937_64(ulong seed = DefaultSeed, ArrayPool<ulong>? arrayPool = null)
+    public MT19937_64(ulong seed = DefaultSeed)
     {
-        _arrayPool = arrayPool ?? ArrayPool<ulong>.Shared;
-        _mt        = _arrayPool.Rent(Nn);
+        _mt = new ulong[Nn];
 
         Init(seed);
     }
@@ -48,10 +45,9 @@ public sealed partial class MT19937_64 : IDisposable
     /// <summary>
     ///     Creates an instance of the 64-bit Mersenne Twister and initializes state with a seed and an array
     /// </summary>
-    public MT19937_64(ReadOnlySpan<ulong> array, ulong seed = DefaultSeedArray, ArrayPool<ulong>? arrayPool = null)
+    public MT19937_64(ReadOnlySpan<ulong> array, ulong seed = DefaultSeedArray)
     {
-        _arrayPool = arrayPool ?? ArrayPool<ulong>.Shared;
-        _mt        = _arrayPool.Rent(Nn);
+        _mt = new ulong[Nn];
 
         InitByArray(seed, array);
     }
@@ -104,10 +100,6 @@ public sealed partial class MT19937_64 : IDisposable
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public double Real3() =>
         Real3(_mt, ref _mti);
-
-    /// <inheritdoc />
-    public void Dispose() =>
-        _arrayPool.Return(_mt);
 
     private static void Init(ulong seed, Span<ulong> mt, ref int mti)
     {

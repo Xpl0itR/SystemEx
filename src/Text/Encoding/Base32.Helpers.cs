@@ -78,7 +78,7 @@ partial class Base32
             return string.Empty;
         }
 
-        string destination = string.Allocate(
+        string destination = StringEx.Allocate(
             GetCharCount(source.Length));
         GetCharsUnchecked(source, destination.AsWriteableSpan());
 

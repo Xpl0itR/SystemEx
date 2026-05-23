@@ -41,13 +41,26 @@ public class Rc4Tests
         Rc4 rc4 = new(key);
 
         for (int i = 0; i < offset; i++)
-        {
             rc4.NextByte();
-        }
-        for (int i = 0; i < actualOutput.Length; i++)
-        {
-            actualOutput[i] = rc4.NextByte();
-        }
+
+        rc4.Fill(actualOutput);
+
+        Assert.Equal(expectedOutput, actualOutput);
+    }
+
+    [Theory, MemberData(nameof(TestVectors))]
+    public void StreamSlim(string keyHex, int offset, string expectedOutputHex)
+    {
+        byte[] key            = Convert.FromHexString(keyHex);
+        byte[] expectedOutput = Convert.FromHexString(expectedOutputHex);
+        byte[] actualOutput   = new byte[16];
+
+        Rc4.Slim rc4 = new(key, stackalloc byte[Rc4.StateLength]);
+
+        for (int i = 0; i < offset; i++)
+            rc4.NextByte();
+
+        rc4.Fill(actualOutput);
 
         Assert.Equal(expectedOutput, actualOutput);
     }
@@ -60,7 +73,7 @@ public class Rc4Tests
         byte[] actualOutput   = new byte[16];
         byte[] temp           = new byte[offset + actualOutput.Length];
 
-        Rc4.XorBlock(key, temp);
+        Rc4.XorSingleBlock(key, temp, temp);
         Buffer.BlockCopy(temp, offset, actualOutput, 0, actualOutput.Length);
 
         Assert.Equal(expectedOutput, actualOutput);

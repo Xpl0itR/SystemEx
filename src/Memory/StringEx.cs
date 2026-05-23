@@ -13,6 +13,23 @@ namespace SystemEx.Memory;
 
 public static class StringEx
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static string Allocate(int length)
+    {
+#if NET8_0_OR_GREATER
+        return FastAllocateString(null, length);
+            
+        [UnsafeAccessor(UnsafeAccessorKind.StaticMethod), MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NET10_0_OR_GREATER
+        static extern string FastAllocateString(string? _, nint length);
+#else
+        static extern string FastAllocateString(string? _, int length);
+#endif
+#else
+        return new string('\0', length);
+#endif
+    }
+
     extension(string str)
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -20,23 +37,5 @@ public static class StringEx
             MemoryMarshal.CreateSpan(
                 ref str.DangerousGetReference(),
                 str.Length);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string Allocate(int length)
-        {
-#if NET9_0_OR_GREATER
-            return FastAllocateString(null, length);
-
-            [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "FastAllocateString"), MethodImpl(MethodImplOptions.AggressiveInlining)]
-            static extern
-#if NET10_0_OR_GREATER
-            string FastAllocateString(string? _, nint length);
-#else
-            string FastAllocateString(string? _, int length);
-#endif
-#else
-            return new string('\0', length);
-#endif
-        }
     }
 }

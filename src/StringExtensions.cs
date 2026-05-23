@@ -62,7 +62,7 @@ public static class StringExtensions
             if (str.IsEmpty)
                 return string.Empty;
 
-            string     res  = string.Allocate(str.Length + CountUpper(str, 1));
+            string     res  = StringEx.Allocate(str.Length + CountUpper(str, 1));
             Span<char> dest = res.AsWriteableSpan();
 
             dest[0] = char.ToLowerInvariant(str[0]);
@@ -91,7 +91,7 @@ public static class StringExtensions
             if (str.IsEmpty)
                 return string.Empty;
 
-            string     res  = string.Allocate(str.Length + CountUpper(str, 1));
+            string     res  = StringEx.Allocate(str.Length + CountUpper(str, 1));
             Span<char> dest = res.AsWriteableSpan();
 
             dest[0] = char.ToUpperInvariant(str[0]);
